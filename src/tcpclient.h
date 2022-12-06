@@ -4,5 +4,10 @@
 #include "tcpsession.h"
 
 struct TcpClient : public Client, public TcpSession {
-    bool connect(GIp ip, int port) override;
+    TcpClient(QObject* parent = nullptr);
+    ~TcpClient() override;
+
+protected:
+    bool doOpen() override;
+    bool doClose() override;
 };

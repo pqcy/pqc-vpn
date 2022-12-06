@@ -8,7 +8,6 @@
 #include <openssl/err.h>
 
 #include "session.h"
-#include "gtrace.h"
 
 struct TlsSession : public Session {
 	int sock_;
@@ -19,6 +18,6 @@ struct TlsSession : public Session {
 
 	int read(char* buf, int size) override;
 	int write(char* buf, int size) override;
-	bool close() override;
+    bool disconnect() override;
 };
 typedef TlsSession *PTlsSession;

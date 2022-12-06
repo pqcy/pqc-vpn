@@ -4,11 +4,11 @@
 #include <mutex>
 #include <thread>
 
-#include "server.h"
+#include "tcpserver.h"
 #include "tlssession.h"
+#include "tlscommon.h"
 
-struct TlsServer : public Server {
-    int acceptSock_;
+struct TlsServer : public TcpServer {
     SSL_CTX *ctx_;
 
     struct TlsSessionList : std::list<TlsSession*> {
@@ -20,8 +20,10 @@ struct TlsServer : public Server {
     } sessions_;
 
     std::string pemFileName_;
-    bool start(int port) override;
-    bool stop() override;
+
+protected:
+    bool doOpen() override;
+    bool doClose() override;
 
 private:
     std::thread* acceptThread_{nullptr};

@@ -6,7 +6,7 @@ TlsSession::TlsSession(int sock, SSL* ssl) {
 }
 
 TlsSession::~TlsSession() {
-	close();
+    disconnect();
 }
 
 int TlsSession::read(char* buf, int size) {
@@ -25,7 +25,7 @@ int TlsSession::write(char* buf, int size) {
 	return res;
 }
 
-bool TlsSession::close() {
+bool TlsSession::disconnect() {
 	if (ssl_ != nullptr) {
 		::SSL_free(ssl_);
 		ssl_ = nullptr;

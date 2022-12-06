@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 
+#include <GApp>
 #include "tlsserver.h"
 
 struct ChatServer : public TlsServer {
@@ -41,6 +42,8 @@ struct Param {
 };
 
 int main(int argc, char* argv[]) {
+    GApp a(argc, argv);
+
 	ChatServer cs;
 
 	Param param;
@@ -48,15 +51,18 @@ int main(int argc, char* argv[]) {
 		Param::usage();
 		return -1;
     }
+    cs.port_ = param.port_;
     cs.pemFileName_ = param.pemFileName_;
-    if (!cs.start(param.port_)) {
-		std::cerr << cs.error_ << std::endl;
+    if (!cs.open()) {
+        std::cerr << qPrintable(cs.err->msg()) << std::endl;
 		return -1;
 	}
 
-	while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
+    while (true) {
+        std::string msg;
+        std::getline(std::cin, msg);
+        if (msg == "q") break;
+    }
 
-	cs.stop();
+    cs.close();
 }

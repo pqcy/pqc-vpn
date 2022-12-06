@@ -43,8 +43,11 @@ int main(int argc, char* argv[]) {
 		Param::usage();
 		return -1;
 	}
-    if (!tc.connect(param.ip_, param.port_)) {
-		std::cerr << tc.error_ << std::endl;
+
+    tc.ip_ = param.ip_;
+    tc.port_ = param.port_;
+    if (!tc.open()) {
+        std::cerr << qPrintable(tc.err->msg()) << std::endl;
 		return -1;
 	}
 
@@ -56,5 +59,6 @@ int main(int argc, char* argv[]) {
 		int writeLen = tc.write(msg.data(), msg.size());
 		if (writeLen == -1) break;
 	}
+
 	tc.close();
 }

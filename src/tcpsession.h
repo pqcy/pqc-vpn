@@ -1,5 +1,7 @@
 #pragma once
 
+#include "session.h"
+
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -7,10 +9,6 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
-
-#include "session.h"
-
-#include "gtrace.h"
 
 struct TcpSession : public Session {
 	int sock_;
@@ -20,6 +18,6 @@ struct TcpSession : public Session {
 
 	int read(char* buf, int size) override;
 	int write(char* buf, int size) override;
-	bool close() override;
+    bool disconnect() override;
 };
 typedef TcpSession *PTcpSession;

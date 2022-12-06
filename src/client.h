@@ -1,9 +1,13 @@
 #pragma once
 
+#include <GStateObj>
 #include <GIp>
+#include "session.h"
 
-struct Client {
-    std::string error_;
+struct Client : GStateObj {
+    Client(QObject* parent = nullptr);
+    ~Client() override;
 
-    virtual bool connect(GIp ip, int port) = 0;
+    GIp ip_;
+    int port_;
 };

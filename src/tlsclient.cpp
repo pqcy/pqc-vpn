@@ -1,33 +1,68 @@
 #include "tlsclient.h"
 
-bool TlsClient::connect(GIp ip, int port) {
-    if (!tcpClient_.connect(ip, port)) {
-		error_ = tcpClient_.error_;
-		return false;
-	}
+TlsClient::TlsClient(QObject* parent) : Client(parent) {
+}
 
-	OpenSSL_add_all_algorithms(); /* Load cryptos, et.al. */
-	SSL_load_error_strings(); /* Bring in and register error messages */
+TlsClient::~TlsClient() {
+    close();
+}
 
-	const SSL_METHOD *method = TLS_client_method();
-	ctx_ = SSL_CTX_new(method);
-	assert(ctx_ != nullptr);
+bool TlsClient::doOpen() {
+    TlsCommon::initialize();
 
-	sock_ = tcpClient_.sock_;
-	ssl_ = SSL_new(ctx_);
-	assert(ssl_ != nullptr);
+    tcpClient_.ip_ = ip_;
+    tcpClient_.port_ = port_;
+    if (!tcpClient_.open()) {
+        err = tcpClient_.err;
+        return false;
+    }
 
-	SSL_set_fd(ssl_, sock_);
+    const SSL_METHOD *method = TLS_client_method();
+    if (method == nullptr) {
+        SET_ERR(GErr::Fail, "TLS_client_method return null");
+        return false;
+    }
 
-	int res = SSL_connect(ssl_);
-	if (res <= 0) {
-		char buf[256];
-		int error_res = SSL_get_error(ssl_, res);
-		sprintf(buf, "SSL_connect return %d SSL_get_error=%d", res, error_res);
-		error_ = buf;
-        GTRACE("SSL_connect return %d %s", res, error_.data());
-		return false;
-	}
+    ctx_ = SSL_CTX_new(method);
+    if (ctx_ == nullptr) {
+        SET_ERR(GErr::Fail, "SSL_CTX_new return null");
+        return false;
+    }
 
-	return true;
+    sock_ = tcpClient_.sock_;
+    ssl_ = SSL_new(ctx_);
+    if (ssl_ == nullptr) {
+        SET_ERR(GErr::Fail, "SSL_new return null");
+        return false;
+    }
+
+    int res = SSL_set_fd(ssl_, sock_);
+    if (res != 1) {
+        SET_ERR(GErr::Fail, "SSL_set_fd return null");
+        return false;
+    }
+
+    res = SSL_connect(ssl_);
+    if (res <= 0) {
+        int sslError = SSL_get_error(ssl_, res);
+        SET_ERR(GErr::Fail, QString("SSL_connect return %1 SSL_get_error=%2").arg(res, sslError));
+        return false;
+    }
+
+    return true;
+}
+
+bool TlsClient::doClose() {
+    if (ssl_ != nullptr) {
+        SSL_shutdown(ssl_);
+        SSL_free(ssl_);
+        ssl_ = nullptr;
+    }
+
+    if (ctx_ != nullptr) {
+        SSL_CTX_free(ctx_);
+        ctx_ = nullptr;
+    }
+
+    return true;
 }

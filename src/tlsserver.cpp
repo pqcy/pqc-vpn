@@ -2,10 +2,9 @@
 
 #include <mutex>
 
-bool TlsServer::start(int port) {
+bool TlsServer::doOpen() {
+    TlsCommon::initialize();
 
-    OpenSSL_add_all_algorithms();  /* load & register all cryptos, etc. */
-    SSL_load_error_strings();   /* load all error messages */
     const SSL_METHOD *method = TLS_server_method();  /* create new server-method instance */
     ctx_ = SSL_CTX_new(method);   /* create new context from method */
     if ( ctx_ == NULL )
@@ -14,117 +13,100 @@ bool TlsServer::start(int port) {
         abort();
     }
 
-    if ( SSL_CTX_use_certificate_file(ctx_, pemFileName_.data(), SSL_FILETYPE_PEM) <= 0 )
-        {
-            ERR_print_errors_fp(stderr);
-            abort();
-        }
-    if ( SSL_CTX_use_PrivateKey_file(ctx_, pemFileName_.data(), SSL_FILETYPE_PEM) <= 0 )
-        {
-            ERR_print_errors_fp(stderr);
-            abort();
-        }
-    if ( !SSL_CTX_check_private_key(ctx_) )
-        {
-            fprintf(stderr, "Private key does not match the public certificate\n");
-            abort();
-        }
-	acceptSock_ = ::socket(AF_INET, SOCK_STREAM, 0);
-	if (acceptSock_ == -1) {
-		error_ = strerror(errno);
-        GTRACE("socket return -1 %s", error_.data());
-		return false;
-	}
+    int res = SSL_CTX_use_certificate_file(ctx_, pemFileName_.data(), SSL_FILETYPE_PEM);
+    if (res != 1) {
+        SET_ERR(GErr::Fail, QString("SSL_CTX_use_certificate_file(%1) return %2").arg(pemFileName_.data()).arg(res));
+        return false;
+    }
 
-	int res;
-#ifdef __linux__
-	int optval = 1;
-	res = ::setsockopt(acceptSock_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-	if (res == -1) {
-		error_ = strerror(errno);
-        GTRACE("setsockopt return -1 %s", error_.data());
-		return false;
-	}
-#endif // __linux
+    res = SSL_CTX_use_PrivateKey_file(ctx_, pemFileName_.data(), SSL_FILETYPE_PEM);
+    if (res != 1) {
+        SET_ERR(GErr::Fail, QString("SSL_CTX_use_PrivateKey_file(%1) return %2").arg(pemFileName_.data()).arg(res));
+        return false;
+    }
 
-	struct sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(port);
+    res = SSL_CTX_check_private_key(ctx_);
+    if (res != 1) {
+        SET_ERR(GErr::Fail, QString("SSL_CTX_check_private_key return %1").arg(res));
+        return false;
+    }
 
-	ssize_t res2 = ::bind(acceptSock_, (struct sockaddr *)&addr, sizeof(addr));
-	if (res2 == -1) {
-		error_ = strerror(errno);
-        GTRACE("bind return -1 %s", error_.data());
-		return false;
-	}
-
-    res = ::listen(acceptSock_, 5);
-	if (res == -1) {
-		error_ = strerror(errno);
-        GTRACE("listen return -1 %s", error_.data());
-		return false;
-	}
+    if (!bind())
+        return false;
 
     acceptThread_ = new std::thread(&TlsServer::acceptRun, this);
-	return true;
+    return true;
 }
 
-bool TlsServer::stop() {
-	::shutdown(acceptSock_, SHUT_RDWR);
-	::close(acceptSock_);
-//    ::SSL_CTX_free(ctx_);
-	if (acceptThread_ != nullptr) {
-		delete acceptThread_;
-		acceptThread_ = nullptr;
-	}
+bool TlsServer::doClose() {
+    ::shutdown(acceptSock_, SHUT_RDWR);
+    ::close(acceptSock_);
+    //    ::SSL_CTX_free(ctx_);
+    if (acceptThread_ != nullptr) {
+        delete acceptThread_;
+        acceptThread_ = nullptr;
+    }
 
-	sessions_.lock();
+    sessions_.lock();
     for (TlsSession* session: sessions_)
-		session->close();
-	sessions_.unlock();
+        session->disconnect();
+    sessions_.unlock();
 
-	while (true) {
-		sessions_.lock();
-		bool exit = sessions_.size() == 0;
-		sessions_.unlock();
-		if (exit) break;
-		usleep(1000);
-	}
+    while (true) {
+        sessions_.lock();
+        bool exit = sessions_.size() == 0;
+        sessions_.unlock();
+        if (exit) break;
+        usleep(100);
+    }
 
-	return true;
+    return true;
 }
 
 void TlsServer::acceptRun() {
-	while (true) {
-		struct sockaddr_in addr;
-		socklen_t len = sizeof(addr);
-		int newSock = ::accept(acceptSock_, (struct sockaddr *)&addr, &len);
-		if (newSock == -1) {
-			error_ = strerror(errno);
-            GTRACE("accept return -1 %s", error_.data());
-			break;
+    while (true) {
+        struct sockaddr_in addr;
+        socklen_t len = sizeof(addr);
+        int newSock = ::accept(acceptSock_, (struct sockaddr *)&addr, &len);
+        if (newSock == -1) {
+            SET_ERR(GErr::Fail, QString("accept return -1 %1").arg(strerror(errno)));
+            break;
         }
         SSL* ssl = SSL_new(ctx_);
-        SSL_set_fd(ssl, newSock);
-        if ( SSL_accept(ssl) == -1 )  {
-             ERR_print_errors_fp(stderr);
-             break;
+        if (ssl == nullptr) {
+            SET_ERR(GErr::Fail, "SSL_new return null");
+            break;
         }
+
+        int res = SSL_set_fd(ssl, newSock);
+        if (res != 1) {
+            SET_ERR(GErr::Fail, QString("SSL_set_fd return %1 %2").arg(res).arg(strerror(errno)));
+            break;
+        }
+
+        res = SSL_accept(ssl);
+        if (res == -1) {
+            int sslError = SSL_get_error(ssl, res);
+            qWarning() << QString("SSL_accept return -1 %1").arg(sslError);
+            ::shutdown(newSock, SHUT_RDWR);
+            ::close(newSock);
+            continue;
+        }
+
         TlsSession* session = new TlsSession(newSock, ssl);
         std::thread* thread = new std::thread(&TlsServer::_run, this, session);
-		thread->detach();
-	}
+        thread->detach();
+    }
 }
 
 void TlsServer::_run(TlsSession* session) {
-	sessions_.lock();
-	sessions_.push_back(session);
-	sessions_.unlock();
+    sessions_.lock();
+    sessions_.push_back(session);
+    sessions_.unlock();
 
-	run(session);
+    run(session);
 
-	sessions_.lock();
-	sessions_.remove(session);
-	sessions_.unlock();
+    sessions_.lock();
+    sessions_.remove(session);
+    sessions_.unlock();
 }
