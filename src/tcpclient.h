@@ -4,10 +4,10 @@
 #include "tcpsession.h"
 
 struct TcpClient : public Client, public TcpSession {
-    TcpClient(QObject* parent = nullptr);
-    ~TcpClient() override;
+	TcpClient(QObject* parent = nullptr);
+	~TcpClient() override;
 
 protected:
-    bool doOpen() override;
-    bool doClose() override;
+	bool doOpen() override;
+	bool doClose() override;
 };

@@ -5,13 +5,13 @@
 #include "tlscommon.h"
 
 struct TlsClient : public Client, public TlsSession {
-    TlsClient(QObject* parent = nullptr);
-    ~TlsClient() override;
+	TlsClient(QObject* parent = nullptr);
+	~TlsClient() override;
 
-    TcpClient tcpClient_;
-    SSL_CTX *ctx_{nullptr};
+	TcpClient tcpClient_;
+	SSL_CTX *ctx_{nullptr};
 
 protected:
-    bool doOpen() override;
-    bool doClose() override;
+	bool doOpen() override;
+	bool doClose() override;
 };

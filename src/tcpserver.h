@@ -18,12 +18,12 @@ struct TcpServer : public Server {
 		void unlock() { m_.unlock(); }
 	} sessions_;
 
-    int port_;
+	int port_;
 
 protected:
-    bool bind();
-    bool doOpen() override;
-    bool doClose() override;
+	bool bind();
+	bool doOpen() override;
+	bool doClose() override;
 
 private:
 	std::thread* acceptThread_{nullptr};

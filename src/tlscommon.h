@@ -9,5 +9,5 @@
 #include <sys/socket.h>
 
 struct TlsCommon {
-    static void initialize();
+	static void initialize();
 };

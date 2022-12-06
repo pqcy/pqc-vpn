@@ -17,6 +17,6 @@ android: K_NAME = $${K_NAME}-android
 K_DIR = $${PWD}
 INCLUDEPATH *= $${K_DIR}/src
 !CONFIG(K_BUILD) {
-        PRE_TARGETDEPS *= $${K_DIR}/bin/lib$${K_NAME}.a
-        LIBS *= -L$${K_DIR}/bin -l$${K_NAME}
+	PRE_TARGETDEPS *= $${K_DIR}/bin/lib$${K_NAME}.a
+	LIBS *= -L$${K_DIR}/bin -l$${K_NAME}
 }

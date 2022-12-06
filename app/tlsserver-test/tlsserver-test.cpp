@@ -16,7 +16,7 @@ protected:
 			buf[res] = '\0';
 			std::puts(buf);
 			sessions_.lock();
-            for (TlsSession* session: sessions_)
+			for (TlsSession* session: sessions_)
 				session->write(buf, res);
 			sessions_.unlock();
 		}
@@ -26,23 +26,23 @@ protected:
 
 struct Param {
 	int port_;
-    std::string pemFileName_;
+	std::string pemFileName_;
 
 	bool parse(int argc, char** argv) {
-        if (argc != 3) return false;
+		if (argc != 3) return false;
 		port_ = std::stoi(argv[1]);
-        pemFileName_ = argv[2];
+		pemFileName_ = argv[2];
 		return true;
 	}
 
 	static void usage() {
-        printf("syntax : tlsserver-test <port> <pem file name>\n");
-        printf("sample : tlsserver-test 12345 rootCA.pem\n");
+		printf("syntax : tlsserver-test <port> <pem file name>\n");
+		printf("sample : tlsserver-test 12345 rootCA.pem\n");
 	}
 };
 
 int main(int argc, char* argv[]) {
-    GApp a(argc, argv);
+	GApp a(argc, argv);
 
 	ChatServer cs;
 
@@ -50,19 +50,19 @@ int main(int argc, char* argv[]) {
 	if (!param.parse(argc, argv)) {
 		Param::usage();
 		return -1;
-    }
-    cs.port_ = param.port_;
-    cs.pemFileName_ = param.pemFileName_;
-    if (!cs.open()) {
-        std::cerr << qPrintable(cs.err->msg()) << std::endl;
+	}
+	cs.port_ = param.port_;
+	cs.pemFileName_ = param.pemFileName_;
+	if (!cs.open()) {
+		std::cerr << qPrintable(cs.err->msg()) << std::endl;
 		return -1;
 	}
 
-    while (true) {
-        std::string msg;
-        std::getline(std::cin, msg);
-        if (msg == "q") break;
-    }
+	while (true) {
+		std::string msg;
+		std::getline(std::cin, msg);
+		if (msg == "q") break;
+	}
 
-    cs.close();
+	cs.close();
 }

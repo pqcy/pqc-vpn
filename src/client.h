@@ -5,9 +5,9 @@
 #include "session.h"
 
 struct Client : GStateObj {
-    Client(QObject* parent = nullptr);
-    ~Client() override;
+	Client(QObject* parent = nullptr);
+	~Client() override;
 
-    GIp ip_;
-    int port_;
+	GIp ip_;
+	int port_;
 };

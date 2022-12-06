@@ -6,13 +6,13 @@ TcpSession::TcpSession(int sock) {
 }
 
 TcpSession::~TcpSession() {
-    disconnect();
+	disconnect();
 }
 
 int TcpSession::read(char* buf, int size) {
 	ssize_t res = ::recv(sock_, buf, size, 0);
 	if (res == 0 || res == -1) {
-        qWarning() << "recv return" << res;
+		qWarning() << "recv return" << res;
 		return -1;
 	}
 	return res;
@@ -21,7 +21,7 @@ int TcpSession::read(char* buf, int size) {
 int TcpSession::write(char* buf, int size) {
 	ssize_t res = ::send(sock_, buf, size, 0);
 	if (res == 0 || res == -1) {
-        qWarning() << "recv return" << res;
+		qWarning() << "recv return" << res;
 		return -1;
 	}
 	return res;

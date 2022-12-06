@@ -6,7 +6,7 @@ TlsSession::TlsSession(int sock, SSL* ssl) {
 }
 
 TlsSession::~TlsSession() {
-    disconnect();
+	disconnect();
 }
 
 int TlsSession::read(char* buf, int size) {
