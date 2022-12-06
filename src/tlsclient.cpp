@@ -64,5 +64,7 @@ bool TlsClient::doClose() {
 		ctx_ = nullptr;
 	}
 
+	tcpClient_.close();
+
 	return true;
 }

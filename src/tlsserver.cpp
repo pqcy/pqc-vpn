@@ -6,7 +6,7 @@ bool TlsServer::doOpen() {
 	TlsCommon::initialize();
 
 	const SSL_METHOD *method = TLS_server_method(); /* create new server-method instance */
-	ctx_ = SSL_CTX_new(method);   /* create new context from method */
+	ctx_ = SSL_CTX_new(method); /* create new context from method */
 	if ( ctx_ == NULL )
 	{
 		ERR_print_errors_fp(stderr);
