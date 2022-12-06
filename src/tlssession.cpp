@@ -1,4 +1,5 @@
 #include "tlssession.h"
+#include <QDebug>
 
 TlsSession::TlsSession(int sock, SSL* ssl) {
 	sock_ = sock;
@@ -6,12 +7,13 @@ TlsSession::TlsSession(int sock, SSL* ssl) {
 }
 
 TlsSession::~TlsSession() {
-	disconnect();
+	TlsSession::disconnect();
 }
 
 int TlsSession::read(char* buf, int size) {
 	int res = ::SSL_read(ssl_, buf, size);
 	if (res == 0 || res == -1) {
+		qWarning() << "SSL_read return" << res;
 		return -1;
 	}
 	return res;
@@ -20,6 +22,7 @@ int TlsSession::read(char* buf, int size) {
 int TlsSession::write(char* buf, int size) {
 	int res = ::SSL_write(ssl_, buf, size);
 	if (res == 0 || res == -1) {
+		qWarning() << "SSL_read return" << res;
 		return -1;
 	}
 	return res;
