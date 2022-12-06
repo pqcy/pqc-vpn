@@ -2,7 +2,8 @@
 #include <string>
 #include <thread>
 
-#include <netinet/in.h>
+#include <GApp>
+
 #include "tcpclient.h"
 
 struct Param {
@@ -36,6 +37,8 @@ void readAndPrint(Session* session) {
 }
 
 int main(int argc, char* argv[]) {
+    GApp a(argc, argv);
+
 	TcpClient tc;
 
 	Param param;
