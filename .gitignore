@@ -1,4 +1,8 @@
+bin/
 build-*/
+Makefile
 *.a
+*.o
+*.stash
 *.user
 
