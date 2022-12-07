@@ -48,22 +48,15 @@ void VpnServer::run(Session* session) {
 		if (len > 10000) {
 			qWarning() << "too big len" << len;
 		}
-
-		readLen = session->read(buf, len);
+		readLen = session->readAll(buf, len);
 		if (readLen != len) {
-			qWarning() << QString("len=%1 readLen=%2").arg(len).arg(readLen);
+			qWarning() << QString("readLen=%1 len=%2").arg(readLen).arg(len);
 			break;
 		}
 
-		GEthPacket packet;
-		packet.buf_.data_ = pbyte(buf);
-		packet.buf_.size_ = len;
-		packet.parse();
-		GPacket::Result res = pcapDevice_.write(&packet);
-		if (res != GPacket::Ok) {
-			qWarning() << QString("pcapDevice_.write return %1").arg(int(res));
-			break;
-		}
+
+		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);
+		memcpy(&buf[4], packet.buf_.data_, len);
 	}
 
 	qDebug() << "";
