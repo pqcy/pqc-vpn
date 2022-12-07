@@ -12,7 +12,7 @@ struct Param {
 	int port_;
 
 	bool parse(int argc, char** argv) {
-		if (argc != 4) return false;
+		if (argc != 5) return false;
 		dummyIntfName_ = argv[1];
 		realIntfName_ = argv[2];
 		ip_ = GIp(argv[3]);

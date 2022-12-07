@@ -4,66 +4,46 @@
 
 #include <GApp>
 
-#include "tlsserver.h"
-
-struct ChatServer : public TlsServer {
-protected:
-	void run(Session* session) override {
-		std::puts("connected");
-		char buf[256];
-		while (true) {
-			int res = session->read(buf, 256);
-			if (res <= 0) break;
-			buf[res] = '\0';
-			std::puts(buf);
-			sessions_.lock();
-			for (TlsSession* session: sessions_)
-				session->write(buf, res);
-			sessions_.unlock();
-		}
-		std::puts("disconnected");
-	}
-};
+#include "vpnserver.h"
 
 struct Param {
 	int port_;
 	std::string pemFileName_;
+	std::string intfName_;
 
 	bool parse(int argc, char** argv) {
-		if (argc != 3) return false;
+		if (argc != 4) return false;
 		port_ = std::stoi(argv[1]);
 		pemFileName_ = argv[2];
+		intfName_ = argv[3];
 		return true;
 	}
 
 	static void usage() {
-		printf("syntax : tlsserver-test <port> <pem file name>\n");
-		printf("sample : tlsserver-test 12345 rootCA.pem\n");
+		printf("syntax : vpnserver-test <port> <pem file name> <interface>\n");
+		printf("sample : vpnserver-test 12345 rootCA.pem eth0\n");
 	}
 };
 
 int main(int argc, char* argv[]) {
 	GApp a(argc, argv);
 
-	ChatServer cs;
+	VpnServer vs;
 
 	Param param;
 	if (!param.parse(argc, argv)) {
 		Param::usage();
 		return -1;
 	}
-	cs.port_ = param.port_;
-	cs.pemFileName_ = param.pemFileName_;
-	if (!cs.open()) {
-		std::cerr << qPrintable(cs.err->msg()) << std::endl;
+	vs.port_ = param.port_;
+	//vs.pemFileName_ = param.pemFileName_;
+	vs.pcapDevice_.intfName_ = param.intfName_.data();
+	if (!vs.open()) {
+		std::cerr << qPrintable(vs.err->msg()) << std::endl;
 		return -1;
 	}
 
-	while (true) {
-		std::string msg;
-		std::getline(std::cin, msg);
-		if (msg == "q") break;
-	}
+	while (true) QThread::sleep(1);
 
-	cs.close();
+	vs.close();
 }

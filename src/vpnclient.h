@@ -5,9 +5,6 @@
 #include "tcpclient.h"
 
 struct VpnClient : GStateObj {
-	Q_OBJECT
-
-public:
 	static const int MaxBufSize = 16384;
 
 	VpnClient(QObject* parent = nullptr);

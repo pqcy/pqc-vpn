@@ -54,7 +54,11 @@ void VpnClient::CaptureAndSendThread::run() {
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
 
-		uint16_t len = packet.buf_.size_;
+		GIpHdr* ipHdr = packet.ipHdr_;
+		if (packet.ipHdr_ == nullptr) continue;
+		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
+		qDebug() << "len=" << len; // gilgil temp
+
 		char buf[MaxBufSize];
 		memcpy(buf, "PQ", 2);
 		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);

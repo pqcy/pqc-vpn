@@ -1,6 +1,7 @@
 SOURCES += \
 	$${PWD}/../src/client.cpp \
 	$${PWD}/../src/server.cpp \
+	$${PWD}/../src/session.cpp \
 	$${PWD}/../src/tcpclient.cpp \
 	$${PWD}/../src/tcpserver.cpp \
 	$${PWD}/../src/tcpsession.cpp \

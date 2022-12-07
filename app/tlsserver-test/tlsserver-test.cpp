@@ -1,9 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
-
 #include <GApp>
-
+#include <GThread>
 #include "tlsserver.h"
 
 struct ChatServer : public TlsServer {
@@ -59,11 +58,7 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	while (true) {
-		std::string msg;
-		std::getline(std::cin, msg);
-		if (msg == "q") break;
-	}
+	while (true) QThread::sleep(1);
 
 	cs.close();
 }
