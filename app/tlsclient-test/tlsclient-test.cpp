@@ -17,7 +17,7 @@ struct Param {
 	}
 
 	static void usage() {
-		printf("syntax : tlsclient-test <host> <port>\n");
+		printf("syntax : tlsclient-test <ip> <port>\n");
 		printf("sample : tlsclient-test 127.0.0.1 12345\n");
 	}
 };

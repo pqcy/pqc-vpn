@@ -18,7 +18,7 @@ struct Param {
 	}
 
 	static void usage() {
-		printf("syntax : tcpclient-test <host> <port>\n");
+		printf("syntax : tcpclient-test <ip> <port>\n");
 		printf("sample : tcpclient-test 127.0.0.1 12345\n");
 	}
 };

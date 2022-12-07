@@ -3,42 +3,33 @@
 
 #include <GApp>
 
-#include "tlsclient.h"
+#include "vpnclient.h"
 
 struct Param {
+	QString dummyIntfName_;
+	QString realIntfName_;
 	GIp ip_;
 	int port_;
 
 	bool parse(int argc, char** argv) {
-		if (argc != 3) return false;
-		ip_ = GIp(argv[1]);
-		port_ = std::stoi(argv[2]);
+		if (argc != 4) return false;
+		dummyIntfName_ = argv[1];
+		realIntfName_ = argv[2];
+		ip_ = GIp(argv[3]);
+		port_ = std::stoi(argv[4]);
 		return true;
 	}
 
 	static void usage() {
-		printf("syntax : tlsclient-test <host> <port>\n");
-		printf("sample : tlsclient-test 127.0.0.1 12345\n");
+		printf("syntax : vpnclient-test <dummy interface> <real interface> <ip> <port>\n");
+		printf("sample : vpnclient-test dum0 wlan0 127.0.0.1 12345\n");
 	}
 };
-
-void readAndPrint(Session* session) {
-	std::puts("connected");
-	char buf[256];
-	while (true) {
-		int res = session->read(buf, 256);
-		if (res <= 0) break;
-		buf[res] = '\0';
-		std::puts(buf);
-	}
-	std::puts("disconnected");
-	exit(0);
-}
 
 int main(int argc, char* argv[]) {
 	GApp a(argc, argv);
 
-	TlsClient tc;
+	VpnClient vc;
 
 	Param param;
 	if (!param.parse(argc, argv)) {
@@ -46,21 +37,17 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	tc.ip_ = param.ip_;
-	tc.port_ = param.port_;
-	if (!tc.open()) {
-		std::cerr << qPrintable(tc.err->msg()) << std::endl;
+	vc.dummyPcapDevice_.intfName_ = param.dummyIntfName_;
+	vc.tcpClient_.ip_ = param.ip_;
+	vc.tcpClient_.port_ = param.port_;
+
+	if (!vc.open()) {
+		std::cerr << qPrintable(vc.err->msg()) << std::endl;
 		return -1;
 	}
 
-	std::thread thread(&readAndPrint, &tc);
+	while (vc.active())
+		QThread::sleep(1);
 
-	while (true) {
-		std::string msg;
-		std::getline(std::cin, msg);
-		int writeLen = tc.write(msg.data(), msg.size());
-		if (writeLen == -1) break;
-	}
-
-	tc.close();
+	vc.close();
 }

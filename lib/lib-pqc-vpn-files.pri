@@ -7,7 +7,9 @@ SOURCES += \
 	$${PWD}/../src/tlsclient.cpp \
 	$${PWD}/../src/tlscommon.cpp \
 	$${PWD}/../src/tlsserver.cpp \
-	$${PWD}/../src/tlssession.cpp
+	$${PWD}/../src/tlssession.cpp \
+	$${PWD}/../src/vpnclient.cpp \
+	$${PWD}/../src/vpnserver.cpp
 
 HEADERS += \
 	$${PWD}/../src/client.h \
@@ -19,4 +21,6 @@ HEADERS += \
 	$${PWD}/../src/tlsclient.h \
 	$${PWD}/../src/tlscommon.h \
 	$${PWD}/../src/tlsserver.h \
-	$${PWD}/../src/tlssession.h
+	$${PWD}/../src/tlssession.h \
+	$${PWD}/../src/vpnclient.h \
+	$${PWD}/../src/vpnserver.h
