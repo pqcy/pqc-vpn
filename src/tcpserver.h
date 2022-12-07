@@ -8,6 +8,9 @@
 #include "tcpsession.h"
 
 struct TcpServer : public Server {
+	TcpServer(QObject* parent = nullptr);
+	~TcpServer() override;
+
 	int acceptSock_;
 
 	struct TcpSessionList : std::list<TcpSession*> {

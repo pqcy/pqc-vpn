@@ -1,6 +1,7 @@
 #include "tlsclient.h"
 
 TlsClient::TlsClient(QObject* parent) : Client(parent) {
+	TlsCommon::initialize();
 }
 
 TlsClient::~TlsClient() {
@@ -8,8 +9,6 @@ TlsClient::~TlsClient() {
 }
 
 bool TlsClient::doOpen() {
-	TlsCommon::initialize();
-
 	tcpClient_.ip_ = ip_;
 	tcpClient_.port_ = port_;
 	if (!tcpClient_.open()) {

@@ -2,6 +2,14 @@
 
 #include <mutex>
 
+TlsServer::TlsServer(QObject* parent) : TcpServer(parent) {
+	TlsCommon::initialize();
+}
+
+TlsServer::~TlsServer() {
+	close();
+}
+
 bool TlsServer::doOpen() {
 	TlsCommon::initialize();
 

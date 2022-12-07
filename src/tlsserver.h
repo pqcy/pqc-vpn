@@ -9,6 +9,9 @@
 #include "tlscommon.h"
 
 struct TlsServer : public TcpServer {
+	TlsServer(QObject* parent = nullptr);
+	~TlsServer() override;
+
 	SSL_CTX *ctx_;
 
 	struct TlsSessionList : std::list<TlsSession*> {
@@ -18,6 +21,7 @@ struct TlsServer : public TcpServer {
 		void lock() { m_.lock(); }
 		void unlock() { m_.unlock(); }
 	} sessions_;
+
 
 	std::string pemFileName_;
 

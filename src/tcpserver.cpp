@@ -1,5 +1,12 @@
 #include "tcpserver.h"
 
+TcpServer::TcpServer(QObject* parent) : Server(parent) {
+}
+
+TcpServer::~TcpServer() {
+	close();
+}
+
 bool TcpServer::bind() {
 	acceptSock_ = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (acceptSock_ == -1) {

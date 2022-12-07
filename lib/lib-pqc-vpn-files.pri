@@ -1,5 +1,6 @@
 SOURCES += \
 	$${PWD}/../src/client.cpp \
+	$${PWD}/../src/server.cpp \
 	$${PWD}/../src/tcpclient.cpp \
 	$${PWD}/../src/tcpserver.cpp \
 	$${PWD}/../src/tcpsession.cpp \
@@ -19,4 +20,3 @@ HEADERS += \
 	$${PWD}/../src/tlscommon.h \
 	$${PWD}/../src/tlsserver.h \
 	$${PWD}/../src/tlssession.h
-
