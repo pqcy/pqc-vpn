@@ -1,6 +1,5 @@
 #include "tlsserver.h"
-
-#include <mutex>
+#include "tlscommon.h"
 
 TlsServer::TlsServer(QObject* parent) : TcpServer(parent) {
 	TlsCommon::initialize();
@@ -17,8 +16,8 @@ bool TlsServer::doOpen() {
 	ctx_ = SSL_CTX_new(method); /* create new context from method */
 	if ( ctx_ == NULL )
 	{
-		ERR_print_errors_fp(stderr);
-		abort();
+		SET_ERR(GErr::Fail, "TLS_server_method return null");
+		return false;
 	}
 
 	int res = SSL_CTX_use_certificate_file(ctx_, pemFileName_.data(), SSL_FILETYPE_PEM);
