@@ -73,9 +73,15 @@ void VpnClient::CaptureAndSendThread::run() {
 
 		GIpHdr* ipHdr = packet.ipHdr_;
 		if (ipHdr == nullptr) continue;
-		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
-		qDebug() << "len=" << len; // gilgil temp
 
+		GTcpHdr* tcpHdr = packet.tcpHdr_;
+		if (tcpHdr != nullptr)
+			tcpHdr->sum_ = htons(GTcpHdr::calcChecksum(ipHdr, tcpHdr));
+		GUdpHdr* udpHdr = packet.udpHdr_;
+		if (udpHdr != nullptr)
+			udpHdr->sum_ = htons(GUdpHdr::calcChecksum(ipHdr, udpHdr));
+
+		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
 		char buf[MaxBufSize];
 		memcpy(buf, "PQ", 2);
 		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);
@@ -121,11 +127,11 @@ void VpnClient::ReadAndReplyThread::run() {
 		packet.parse();
 
 		GPacket::Result res;
-		GUdpHdr* udpHdr = packet.udpHdr_;
-		if (udpHdr != nullptr)
-			res = client->dummyPcapDevice_.write(&packet);
-		else
+		GTcpHdr* tcpHdr = packet.tcpHdr_;
+		if (tcpHdr != nullptr)
 			res = socketWrite->write(&packet);
+		else
+			res = client->dummyPcapDevice_.write(&packet);
 
 		//GPacket::Result
 		if (res != GPacket::Ok) {

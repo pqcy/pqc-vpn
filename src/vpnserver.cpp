@@ -82,6 +82,14 @@ void VpnServer::CaptureAndProcessThread::run() {
 			QMutexLocker ml(&cim->m_);
 			if (cim->find(smac) != cim->end()) continue; // client sending packet
 		}
+
+		GTcpHdr* tcpHdr = packet.tcpHdr_;
+		if (tcpHdr != nullptr)
+			tcpHdr->sum_ = htons(GTcpHdr::calcChecksum(ipHdr, tcpHdr));
+		GUdpHdr* udpHdr = packet.udpHdr_;
+		if (udpHdr != nullptr)
+			udpHdr->sum_ = htons(GUdpHdr::calcChecksum(ipHdr, udpHdr));
+
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
 		qDebug() << QString("len=%1 smac=%2 dmac=%3").arg(len).arg(QString(smac)).arg(QString(dmac));
 
