@@ -1,4 +1,5 @@
 #include "vpnserver.h"
+#include "net/pdu/getharppacket.h"
 
 VpnServer::VpnServer(QObject* parent) : TcpServer(parent) {
 }
@@ -16,6 +17,13 @@ bool VpnServer::doOpen() {
 		return false;
 	}
 
+	arpPcapDevice_.intfName_ = intfName_;
+	arpPcapDevice_.filter_ = "arp";
+	if (!arpPcapDevice_.open()) {
+		err = arpPcapDevice_.err;
+		return false;
+	}
+
 	atm_.intfName_ = intfName_;
 	if (!atm_.open()) {
 		err = atm_.err;
@@ -30,6 +38,7 @@ bool VpnServer::doOpen() {
 	}
 
 	captureAndProcessThread_.start();
+	arpResolveThread_.start();
 
 	return true;
 }
@@ -40,6 +49,8 @@ bool VpnServer::doClose() {
 	atm_.close();
 	captureAndProcessThread_.quit();
 	captureAndProcessThread_.wait();
+	arpResolveThread_.quit();
+	arpResolveThread_.wait();
 	return true;
 }
 
@@ -49,11 +60,13 @@ void VpnServer::CaptureAndProcessThread::run() {
 	ClientInfoMap* cim = &server->cim_;
 	GIntf* intf = server->intf_;
 
-	while (true) {
+	while (server->active()) {
 		GEthPacket packet;
 		GPacket::Result res = pcapDevice->read(&packet);
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
+
+		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GEthHdr* ethHdr = packet.ethHdr_;
 		if (ethHdr == nullptr) continue;
@@ -63,6 +76,8 @@ void VpnServer::CaptureAndProcessThread::run() {
 
 		GMac smac = ethHdr->smac();
 		GMac dmac = ethHdr->dmac();
+
+		if (smac == intf->mac() || dmac == intf->mac()) continue; // server interfacd packet
 		{
 			QMutexLocker ml(&cim->m_);
 			if (cim->find(smac) != cim->end()) continue; // client sending packet
@@ -83,30 +98,63 @@ void VpnServer::CaptureAndProcessThread::run() {
 				qWarning() << QString("session write %1 %2").arg(4 + len).arg(QString(ci->mac_));
 			}
 		} else {
-			// ----- by gilgil 2022.-----
-			// Even if packet is for a specific client(e.g. gateway > client), dmac can be server's real mac
-			if (dmac == intf->mac()) {
-
-			}
-			// ---------------------
+			QMutexLocker ml(&cim->m_);
 			ClientInfoMap::iterator it = cim->find(dmac);
 			if (it != cim->end()) {
 				ClientInfo* ci = *it;
 				Session* session = ci->session_;
 				int writeLen = session->write(buf, 4 + len);
 				if (writeLen == -1) break;
-				qWarning() << QString("session write %1 %2").arg(4 + len).arg(QString(ci->mac_));
+				qWarning() << QString("session write %1 to %2").arg(4 + len).arg(QString(ci->mac_));
 			}
 		}
 	}
 }
 
+void VpnServer::ArpResolveThread::run() {
+	qDebug() << "";
+	VpnServer* server = PVpnServer(parent());
+	GSyncPcapDevice* arpPcapDevice = &server->arpPcapDevice_;
+	ClientInfoMap* cim = &server->cim_;
+	while (server->active()) {
+		GEthPacket packet;
+		GPacket::Result res =arpPcapDevice->read(&packet);
+		if (res == GPacket::Eof || res == GPacket::Fail) break;
+		if (res == GPacket::None) continue;
+
+		//QThread::sleep(1); // gilgil temp 2022.12.09
+
+		GEthHdr* ethHdr = packet.ethHdr_;
+		if (ethHdr == nullptr) continue;
+
+		GArpHdr* arpHdr = packet.arpHdr_;
+		if (arpHdr == nullptr) continue;
+
+		if (arpHdr->op() != GArpHdr::Request) continue;
+		{
+			GIp tip = arpHdr->tip();
+			QMutexLocker ml(&cim->m_);
+			for (ClientInfo* ci : *cim) {
+				if (ci->ip_ == tip) {
+					GEthArpPacket sendPacket;
+					sendPacket.init(ethHdr->smac(), ci->mac_, GArpHdr::Reply, ci->mac_, ci->ip_, arpHdr->smac(), arpHdr->sip());
+					GBuf buf(pbyte(&sendPacket), sizeof(sendPacket));
+					GPacket::Result res = arpPcapDevice->write(buf);
+					if (res != GPacket::Ok)
+						qWarning() << QString("send arp packet return %1").arg(int(res));
+				}
+			}
+		}
+	}
+	qDebug() << "";
+}
+
 void VpnServer::run(Session* session) {
 	qDebug() << "";
-	bool ciAdded = false;
 	ClientInfo ci;
+	ClientInfoMap::iterator it = cim_.end();
 
-	while (true) {
+	while (active()) {
 		char buf[MaxBufSize];
 		int readLen = session->readAll(buf, 4); // header size
 		if (readLen != 4) break;
@@ -125,6 +173,8 @@ void VpnServer::run(Session* session) {
 			break;
 		}
 
+		//QThread::sleep(1); // gilgil temp 2022.12.08
+
 		GEthPacket packet;
 		packet.buf_.data_ = pbyte(buf);
 		packet.buf_.size_ = len;
@@ -133,11 +183,12 @@ void VpnServer::run(Session* session) {
 		GEthHdr* ethHdr = packet.ethHdr_;
 		if (ethHdr == nullptr) continue;
 
+		GIpHdr* ipHdr = packet.ipHdr_;
+		if (ipHdr == nullptr) continue;
+
 		GMac smac = ethHdr->smac();
 		GMac dmac = ethHdr->dmac();
 		if (smac == dmac) {
-			GIpHdr* ipHdr = packet.ipHdr_;
-			if (ipHdr == nullptr) continue;
 			GIp ip = ipHdr->dip();
 			ip = intf_->getAdjIp(ip);
 			GAtm::Iterator it = atm_.find(ip);
@@ -155,17 +206,20 @@ void VpnServer::run(Session* session) {
 			ethHdr->dmac_ = it.value();
 		}
 
-		if (!ciAdded) {
+		if (it == cim_.end()) {
 			GMac mac = packet.ethHdr_->smac();
 			ci.mac_ = mac;
 			ci.session_ = session;
 			{
 				QMutexLocker ml(&cim_.m_);
-				cim_.insert(mac, &ci);
+				it  = cim_.insert(mac, &ci);
 			}
 			qWarning() << QString("insert %1").arg(QString(mac));
-			ciAdded = true;
 		}
+		GIp sip = ipHdr->sip();
+		if (!sip.isNull())
+			(*it)->ip_ = sip;
+
 		GPacket::Result res = pcapDevice_.write(&packet);
 		if (res != GPacket::Ok) {
 			qWarning() << QString("pcapDevice_.write(&packet) return %d").arg(int(res));
@@ -173,11 +227,10 @@ void VpnServer::run(Session* session) {
 		qWarning() << QString("pcap write %1").arg(packet.buf_.size_);
 
 	}
-	if (ciAdded)
+	if (it != cim_.end())
 	{
 		QMutexLocker ml(&cim_.m_);
-		cim_.remove(ci.mac_);
-		cimbyip_.remove(ci.ip_);
+		cim_.erase(it);
 	}
 	qDebug() << "";
 }

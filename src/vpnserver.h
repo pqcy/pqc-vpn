@@ -17,9 +17,6 @@ struct VpnServer : TcpServer {
 	struct ClientInfoMap : QMap<GMac, ClientInfo*> {
 		QMutex m_;
 	} cim_;
-	struct ClientInfoMapByIp : QMap<GIp, ClientInfo*> {
-		QMutex m_;
-	} cimbyip_;
 
 	VpnServer(QObject* parent = nullptr);
 	~VpnServer() override;
@@ -28,6 +25,7 @@ struct VpnServer : TcpServer {
 
 protected:
 	GSyncPcapDevice pcapDevice_{this};
+	GSyncPcapDevice arpPcapDevice_{this};
 	GAtm atm_{this};
 	GIntf* intf_{nullptr};
 
@@ -41,6 +39,13 @@ protected:
 
 		void run() override;
 	} captureAndProcessThread_{this};
+
+	struct ArpResolveThread : GThread {
+		ArpResolveThread(QObject* parent) : GThread(parent) {}
+		~ArpResolveThread() override {}
+
+		void run() override;
+	} arpResolveThread_{this};
 
 	void run(Session* session) override;
 };

@@ -8,11 +8,26 @@ VpnClient::~VpnClient() {
 }
 
 bool VpnClient::doOpen() {
+	GIntf* intf = GNetInfo::instance().intfList().findByName(realIntfName_);
+	if (intf == nullptr) {
+		SET_ERR(GErr::ObjectIsNull, QString("intf(%1)null").arg(realIntfName_));
+		return false;
+	}
+	GIp ip = intf->ip();
+	if (ip == 0) {
+		SET_ERR(GErr::ValueIsNotZero, QString("ip is zero(%1)").arg(realIntfName_));
+		return false;
+	}
+	tcpClient_.localIp_ = ip;
+	tcpClient_.localPort_ = 0;
+	tcpClient_.ip_ = ip_;
+	tcpClient_.port_ = port_;
 	if (!tcpClient_.open()) {
 		err = tcpClient_.err;
 		return false;
 	}
 
+	dummyPcapDevice_.intfName_ = dummyIntfName_;
 	if (!dummyPcapDevice_.open()) {
 		err = dummyPcapDevice_.err;
 		return false;
@@ -54,6 +69,8 @@ void VpnClient::CaptureAndSendThread::run() {
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
 
+		//QThread::sleep(1); // gilgil temp 2022.12.08
+
 		GIpHdr* ipHdr = packet.ipHdr_;
 		if (ipHdr == nullptr) continue;
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
@@ -77,7 +94,7 @@ void VpnClient::ReadAndReplyThread::run() {
 	TcpClient* tcpClient = &client->tcpClient_;
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 
-	while (true) {
+	while (client->active()) {
 		char buf[MaxBufSize];
 		int readLen = tcpClient->readAll(buf, 4); // header size
 		if (readLen != 4) break;
@@ -95,6 +112,8 @@ void VpnClient::ReadAndReplyThread::run() {
 			qWarning() << QString("readLen=%1 len=%2").arg(readLen).arg(len);
 			break;
 		}
+
+		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GEthPacket packet;
 		packet.buf_.data_ = pbyte(buf);

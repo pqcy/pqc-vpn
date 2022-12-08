@@ -10,6 +10,13 @@ struct VpnClient : GStateObj {
 	VpnClient(QObject* parent = nullptr);
 	~VpnClient() override;
 
+	QString dummyIntfName_;
+	QString realIntfName_;
+	QString intfName_;
+	GIp ip_;
+	int port_;
+
+protected:
 	TcpClient tcpClient_{this};
 	GSyncPcapDevice dummyPcapDevice_{this};
 	GRawIpSocketWrite socketWrite_{this};

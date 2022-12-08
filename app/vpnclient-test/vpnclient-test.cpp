@@ -37,10 +37,10 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	vc.dummyPcapDevice_.intfName_ = param.dummyIntfName_;
-	vc.tcpClient_.ip_ = param.ip_;
-	vc.tcpClient_.port_ = param.port_;
-
+	vc.dummyIntfName_ = param.dummyIntfName_;
+	vc.realIntfName_ = param.realIntfName_;
+	vc.ip_ = param.ip_;
+	vc.port_ = param.port_;
 	if (!vc.open()) {
 		std::cerr << qPrintable(vc.err->msg()) << std::endl;
 		return -1;
