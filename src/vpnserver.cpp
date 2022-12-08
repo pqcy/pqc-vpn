@@ -99,11 +99,11 @@ void VpnServer::CaptureAndProcessThread::run() {
 		memcpy(&buf[4], packet.buf_.data_, len);
 
 		if (dmac.isBroadcast() || dmac.isMulticast()) {
-			qWarning() << "broadcast or multicast"; // gilgil temp 2022.12.08
+			qDebug() << "broadcast or multicast"; // gilgil temp 2022.12.08
 			QMutexLocker ml(&cim->m_);
 			for (ClientInfo* ci : *cim) {
 				ci->session_->write(buf, 4 + len);
-				qWarning() << QString("session write %1 %2").arg(4 + len).arg(QString(ci->mac_));
+				qDebug() << QString("session write %1 %2").arg(4 + len).arg(QString(ci->mac_));
 			}
 		} else {
 			QMutexLocker ml(&cim->m_);
@@ -113,7 +113,7 @@ void VpnServer::CaptureAndProcessThread::run() {
 				Session* session = ci->session_;
 				int writeLen = session->write(buf, 4 + len);
 				if (writeLen == -1) break;
-				qWarning() << QString("session write %1 to %2").arg(4 + len).arg(QString(ci->mac_));
+				qDebug() << QString("session write %1 to %2").arg(4 + len).arg(QString(ci->mac_));
 			}
 		}
 	}
@@ -232,7 +232,7 @@ void VpnServer::run(Session* session) {
 		if (res != GPacket::Ok) {
 			qWarning() << QString("pcapDevice_.write(&packet) return %d").arg(int(res));
 		}
-		qWarning() << QString("pcap write %1").arg(packet.buf_.size_);
+		qDebug() << QString("pcap write %1").arg(packet.buf_.size_);
 
 	}
 	if (it != cim_.end())

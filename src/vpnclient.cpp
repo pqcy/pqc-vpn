@@ -89,7 +89,7 @@ void VpnClient::CaptureAndSendThread::run() {
 
 		int writeLen = tcpClient->write(buf, 4 + len);
 		if (writeLen == -1) break;
-		qWarning() << QString("session write %1").arg(4 + len);
+		qDebug() << QString("session write %1").arg(4 + len);
 	}
 	qDebug() << ""; // gilgil temp 2022.12.07
 }
