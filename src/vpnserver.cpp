@@ -89,6 +89,7 @@ void VpnServer::CaptureAndProcessThread::run() {
 		GUdpHdr* udpHdr = packet.udpHdr_;
 		if (udpHdr != nullptr)
 			udpHdr->sum_ = htons(GUdpHdr::calcChecksum(ipHdr, udpHdr));
+		ipHdr->sum_ = htons(GIpHdr::calcChecksum(ipHdr));
 
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
 		qDebug() << QString("len=%1 smac=%2 dmac=%3").arg(len).arg(QString(smac)).arg(QString(dmac));
@@ -184,6 +185,7 @@ void VpnServer::run(Session* session) {
 		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GEthPacket packet;
+		packet.clear();
 		packet.buf_.data_ = pbyte(buf);
 		packet.buf_.size_ = len;
 		packet.parse();
