@@ -119,10 +119,17 @@ void VpnClient::ReadAndReplyThread::run() {
 		packet.buf_.data_ = pbyte(buf);
 		packet.buf_.size_ = len;
 		packet.parse();
-		//GPacket::Result res = socketWrite->write(&packet);
-		GPacket::Result res = client->dummyPcapDevice_.write(&packet);
+
+		GPacket::Result res;
+		GUdpHdr* udpHdr = packet.udpHdr_;
+		if (udpHdr != nullptr)
+			res = client->dummyPcapDevice_.write(&packet);
+		else
+			res = socketWrite->write(&packet);
+
+		//GPacket::Result
 		if (res != GPacket::Ok) {
-			qWarning() << QString("pcapDevice_.write(&packet) return %d").arg(int(res));
+			qWarning() << QString("pcapDevice_.write(&packet) return %1").arg(int(res));
 		}
 		qWarning() << QString("pcap write %1").arg(packet.buf_.size_);
 	}

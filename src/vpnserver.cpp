@@ -137,7 +137,7 @@ void VpnServer::ArpResolveThread::run() {
 			for (ClientInfo* ci : *cim) {
 				if (ci->ip_ == tip) {
 					GEthArpPacket sendPacket;
-					sendPacket.init(ethHdr->smac(), ci->mac_, GArpHdr::Reply, ci->mac_, ci->ip_, arpHdr->smac(), arpHdr->sip());
+					sendPacket.init(ethHdr->smac(), ci->mac_, GArpHdr::Request, ci->mac_, ci->ip_, arpHdr->smac(), arpHdr->sip());
 					GBuf buf(pbyte(&sendPacket), sizeof(sendPacket));
 					GPacket::Result res = arpPcapDevice->write(buf);
 					if (res != GPacket::Ok)
