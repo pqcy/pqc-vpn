@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	}
 	vs.port_ = param.port_;
 	//vs.pemFileName_ = param.pemFileName_;
-	vs.pcapDevice_.intfName_ = param.intfName_.data();
+	vs.intfName_ = param.intfName_.data();
 	if (!vs.open()) {
 		std::cerr << qPrintable(vs.err->msg()) << std::endl;
 		return -1;
