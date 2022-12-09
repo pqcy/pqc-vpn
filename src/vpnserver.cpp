@@ -100,8 +100,8 @@ void VpnServer::CaptureAndProcessThread::run() {
 		memcpy(&buf[4], packet.buf_.data_, len);
 
 		if (dmac.isBroadcast() || dmac.isMulticast()) {
-			qDebug() << "broadcast or multicast"; // gilgil temp 2022.12.08
 			QMutexLocker ml(&cim->m_);
+			qDebug() << QString("broadcast or multicast %1").arg(cim->count()); // gilgil temp 2022.12.08
 			for (ClientInfo* ci : *cim) {
 				ci->session_->write(buf, 4 + len);
 				qDebug() << QString("session write %1 %2").arg(4 + len).arg(QString(ci->mac_));
