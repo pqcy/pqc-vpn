@@ -43,11 +43,13 @@ bool VpnClient::doOpen() {
 		return false;
 	}
 
+	runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %2").arg(QString(ip_)).arg(realIntfName_));
+	//runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_));
+
+	GThreadMgr::suspendStart();
 	captureAndSendThread_.start();
 	readAndReplyThread_.start();
-
-	runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %2").arg(QString(ip_)).arg(realIntfName_));
-	runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_));
+	GThreadMgr::resumeStart();
 
 	return true;
 }
