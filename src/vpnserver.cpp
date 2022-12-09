@@ -46,14 +46,20 @@ bool VpnServer::doOpen() {
 		return false;
 	}
 
+	GThreadMgr::suspendStart();
 	captureAndProcessThread_.start();
 	arpResolveThread_.start();
+	GThreadMgr::resumeStart();
 
 	return true;
 }
 
 bool VpnServer::doClose() {
+#ifdef SUPPORT_VPN_TLS
+	TlsServer::doClose();
+#else // SUPPORT_VPN_TLS
 	TcpServer::doClose();
+#endif // SUPPORT_VPN_TLS
 	pcapDevice_.close();
 	atm_.close();
 	captureAndProcessThread_.quit();
@@ -64,6 +70,7 @@ bool VpnServer::doClose() {
 }
 
 void VpnServer::CaptureAndProcessThread::run() {
+	qDebug() << "beg";
 	VpnServer* server = PVpnServer(parent());
 	GSyncPcapDevice* pcapDevice = &server->pcapDevice_;
 	ClientInfoMap* cim = &server->cim_;
@@ -74,8 +81,6 @@ void VpnServer::CaptureAndProcessThread::run() {
 		GPacket::Result res = pcapDevice->read(&packet);
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
-
-		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GEthHdr* ethHdr = packet.ethHdr_;
 		if (ethHdr == nullptr) continue;
@@ -127,10 +132,12 @@ void VpnServer::CaptureAndProcessThread::run() {
 			}
 		}
 	}
+	qDebug() << "end";
+	emit server->closed();
 }
 
 void VpnServer::ArpResolveThread::run() {
-	qDebug() << "";
+	qDebug() << "beg";
 	VpnServer* server = PVpnServer(parent());
 	GSyncPcapDevice* arpPcapDevice = &server->arpPcapDevice_;
 	ClientInfoMap* cim = &server->cim_;
@@ -139,8 +146,6 @@ void VpnServer::ArpResolveThread::run() {
 		GPacket::Result res =arpPcapDevice->read(&packet);
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
-
-		//QThread::sleep(1); // gilgil temp 2022.12.09
 
 		GEthHdr* ethHdr = packet.ethHdr_;
 		if (ethHdr == nullptr) continue;
@@ -164,11 +169,11 @@ void VpnServer::ArpResolveThread::run() {
 			}
 		}
 	}
-	qDebug() << "";
+	qDebug() << "end";
 }
 
 void VpnServer::run(Session* session) {
-	qDebug() << "";
+	qDebug() << "beg";
 	ClientInfo ci;
 	ClientInfoMap::iterator it = cim_.end();
 
@@ -181,7 +186,6 @@ void VpnServer::run(Session* session) {
 			break;
 		}
 		uint16_t len = ntohs(*reinterpret_cast<uint16_t*>(&buf[2]));
-		qDebug() << "len=" << len; // gilgil temp 2022.12.08
 		if (len > 10000) {
 			qWarning() << "too big len" << len;
 		}
@@ -190,8 +194,6 @@ void VpnServer::run(Session* session) {
 			qWarning() << QString("readLen=%1 len=%2").arg(readLen).arg(len);
 			break;
 		}
-
-		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GEthPacket packet;
 		packet.clear();
@@ -251,5 +253,5 @@ void VpnServer::run(Session* session) {
 		QMutexLocker ml(&cim_.m_);
 		cim_.erase(it);
 	}
-	qDebug() << "";
+	qDebug() << "end";
 }

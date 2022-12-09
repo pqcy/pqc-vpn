@@ -56,13 +56,15 @@ bool TcpServer::doClose() {
 	::shutdown(acceptSock_, SHUT_RDWR);
 	::close(acceptSock_);
 	if (acceptThread_ != nullptr) {
+		acceptThread_->join();
 		delete acceptThread_;
 		acceptThread_ = nullptr;
 	}
 
 	sessions_.lock();
-	for (TcpSession* session: sessions_)
+	for (TcpSession* session: sessions_) {
 		session->disconnect();
+	}
 	sessions_.unlock();
 
 	while (true) {

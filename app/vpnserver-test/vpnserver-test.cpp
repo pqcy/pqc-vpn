@@ -1,4 +1,5 @@
 #include <chrono>
+#include <csignal>
 #include <iostream>
 #include <thread>
 
@@ -25,10 +26,33 @@ struct Param {
 	}
 };
 
-int main(int argc, char* argv[]) {
-	GApp a(argc, argv);
+VpnServer vs;
+struct Obj : QObject {
+	Q_OBJECT
 
-	VpnServer vs;
+public:
+	Obj() : QObject(nullptr) {
+		QObject::connect(&vs, &GStateObj::closed, this, &Obj::processClosed);
+	}
+
+public slots:
+	void processClosed() {
+		vs.close();
+	}
+} obj;
+
+void signalHandler(int signo) {
+	qWarning() << QString("signal occured %1").arg(signo);
+	vs.close();
+	qWarning() << "vpnserver terminated successfully";
+	exit(0);
+}
+
+int main(int argc, char* argv[]) {
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+
+	GApp a(argc, argv);
 
 	Param param;
 	if (!param.parse(argc, argv)) {
@@ -49,3 +73,5 @@ int main(int argc, char* argv[]) {
 
 	vs.close();
 }
+
+#include "vpnserver-test.moc"

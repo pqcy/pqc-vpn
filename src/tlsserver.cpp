@@ -48,6 +48,7 @@ bool TlsServer::doClose() {
 	::shutdown(acceptSock_, SHUT_RDWR);
 	::close(acceptSock_);
 	if (acceptThread_ != nullptr) {
+		acceptThread_->join();
 		delete acceptThread_;
 		acceptThread_ = nullptr;
 	}

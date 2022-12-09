@@ -74,7 +74,7 @@ void VpnClient::runCommand(QString cmd) {
 }
 
 void VpnClient::CaptureAndSendThread::run() {
-	qDebug() << "beg"; // gilgil temp 2022.12.07
+	qDebug() << "beg";
 	VpnClient* client = PVpnClient(parent());
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 #ifdef SUPPORT_VPN_TLS
@@ -83,13 +83,11 @@ void VpnClient::CaptureAndSendThread::run() {
 	TcpClient* sockClient = &client->sockClient_;
 #endif // SUPPORT_VPN_TLS
 
-	while (true) {
+	while (client->active()) {
 		GEthPacket packet;
 		GPacket::Result res = dummyPcapDevice->read(&packet);
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
-
-		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GIpHdr* ipHdr = packet.ipHdr_;
 		if (ipHdr == nullptr) continue;
@@ -112,11 +110,11 @@ void VpnClient::CaptureAndSendThread::run() {
 		if (writeLen == -1) break;
 		qDebug() << QString("session write %1").arg(len);
 	}
-	qDebug() << "end"; // gilgil temp 2022.12.07
+	qDebug() << "end";
 }
 
 void VpnClient::ReadAndReplyThread::run() {
-	qDebug() << "beg"; // gilgil temp 2022.12.07
+	qDebug() << "beg";
 	VpnClient* client = PVpnClient(parent());
 #ifdef SUPPORT_VPN_TLS
 	TlsClient* sockClient = &client->sockClient_;
@@ -126,7 +124,7 @@ void VpnClient::ReadAndReplyThread::run() {
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 
-	while (true) {
+	while (client->active()) {
 		char buf[MaxBufSize];
 		int readLen = sockClient->readAll(buf, 4); // header size
 		if (readLen != 4) break;
@@ -135,7 +133,6 @@ void VpnClient::ReadAndReplyThread::run() {
 			break;
 		}
 		uint16_t len = ntohs(*reinterpret_cast<uint16_t*>(&buf[2]));
-		qDebug() << "len=" << len; // gilgil temp 2022.12.08
 		if (len > 10000) {
 			qWarning() << "too big len" << len;
 		}
@@ -144,8 +141,6 @@ void VpnClient::ReadAndReplyThread::run() {
 			qWarning() << QString("readLen=%1 len=%2").arg(readLen).arg(len);
 			break;
 		}
-
-		//QThread::sleep(1); // gilgil temp 2022.12.08
 
 		GEthPacket packet;
 		packet.clear();
@@ -171,5 +166,6 @@ void VpnClient::ReadAndReplyThread::run() {
 		}
 		qWarning() << QString("pcap write %1").arg(packet.buf_.size_);
 	}
-	qDebug() << "end"; // gilgil temp 2022.12.07
+	emit client->closed();
+	qDebug() << "end";
 }

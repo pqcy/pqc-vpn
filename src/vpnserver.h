@@ -11,6 +11,9 @@ struct VpnServer : TlsServer {
 #else // SUPPORT_VPN_TLS
 struct VpnServer : TcpServer {
 #endif // SUPPORT_VPN_TLS
+	Q_OBJECT
+
+public:
 	static const int MaxBufSize = 16384;
 
 	struct ClientInfo {

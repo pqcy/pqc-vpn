@@ -1,3 +1,4 @@
+#include <csignal>
 #include <iostream>
 #include <thread>
 
@@ -26,10 +27,36 @@ struct Param {
 	}
 };
 
-int main(int argc, char* argv[]) {
-	GApp a(argc, argv);
+VpnClient vc;
+struct Obj : QObject {
+	Q_OBJECT
 
-	VpnClient vc;
+public:
+	Obj() : QObject(nullptr) {
+		QMetaObject::Connection conn = QObject::connect(&vc, &GStateObj::closed, this, &Obj::processClosed);
+		qDebug() << conn;
+	}
+
+public slots:
+	void processClosed() {
+		qDebug() << "bef vc.close()";
+		vc.close();
+		qDebug() << "aft vc.close()";
+	}
+} obj;
+
+void signalHandler(int signo) {
+	qWarning() << QString("signal occured %1").arg(signo);
+	vc.close();
+	qWarning() << "vpnclient terminated successfully";
+	exit(0);
+}
+
+int main(int argc, char* argv[]) {
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+
+	GApp a(argc, argv);
 
 	Param param;
 	if (!param.parse(argc, argv)) {
@@ -51,3 +78,5 @@ int main(int argc, char* argv[]) {
 
 	vc.close();
 }
+
+#include "vpnclient-test.moc"
