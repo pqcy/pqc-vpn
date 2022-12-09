@@ -109,6 +109,7 @@ void VpnClient::ReadAndReplyThread::run() {
 #else // SUPPORT_VPN_TLS
 	TcpClient* sockClient = &client->sockClient_;
 #endif // SUPPORT_VPN_TLS
+	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 
 	while (client->active()) {
@@ -138,7 +139,19 @@ void VpnClient::ReadAndReplyThread::run() {
 		packet.buf_.size_ = len;
 		packet.parse();
 
-		GPacket::Result res = socketWrite->write(&packet);
+		bool dummyWrite = false;
+		GUdpHdr* udpHdr = packet.udpHdr_;
+		if (udpHdr != nullptr) {
+			uint16_t sport = udpHdr->sport();
+			uint16_t dport = udpHdr->dport();
+			if(sport == 68 || dport == 68) // DHCP
+				dummyWrite = true;
+		}
+		GPacket::Result res;
+		if (dummyWrite)
+			res = dummyPcapDevice->write(&packet);
+		else
+			res = socketWrite->write(&packet);
 		if (res != GPacket::Ok) {
 			qWarning() << QString("pcapDevice_.write(&packet) return %1").arg(int(res));
 		}
