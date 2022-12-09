@@ -46,13 +46,14 @@ bool VpnClient::doOpen() {
 	captureAndSendThread_.start();
 	readAndReplyThread_.start();
 
-	runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %2").arg(ip).arg(realIntfName_));
-	runCommand(QString("sudo dhclient -i %11").arg(dummyIntfName_));
+	runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %2").arg(QString(ip_)).arg(realIntfName_));
+	runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_));
 
 	return true;
 }
 
 bool VpnClient::doClose() {
+	qDebug() << "";
 	sockClient_.close();
 	dummyPcapDevice_.close();
 	socketWrite_.close();
@@ -67,8 +68,13 @@ bool VpnClient::doClose() {
 	return true;
 }
 
+void VpnClient::runCommand(QString cmd) {
+	qDebug() << cmd;
+	system(qPrintable(cmd));
+}
+
 void VpnClient::CaptureAndSendThread::run() {
-	qDebug() << ""; // gilgil temp 2022.12.07
+	qDebug() << "beg"; // gilgil temp 2022.12.07
 	VpnClient* client = PVpnClient(parent());
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 #ifdef SUPPORT_VPN_TLS
@@ -77,7 +83,7 @@ void VpnClient::CaptureAndSendThread::run() {
 	TcpClient* sockClient = &client->sockClient_;
 #endif // SUPPORT_VPN_TLS
 
-	while (client->active()) {
+	while (true) {
 		GEthPacket packet;
 		GPacket::Result res = dummyPcapDevice->read(&packet);
 		if (res == GPacket::Eof || res == GPacket::Fail) break;
@@ -106,16 +112,11 @@ void VpnClient::CaptureAndSendThread::run() {
 		if (writeLen == -1) break;
 		qDebug() << QString("session write %1").arg(len);
 	}
-	qDebug() << ""; // gilgil temp 2022.12.07
-}
-
-void VpnClient::runCommand(QString cmd) {
-	qDebug() << cmd;
-	system(qPrintable(cmd));
+	qDebug() << "end"; // gilgil temp 2022.12.07
 }
 
 void VpnClient::ReadAndReplyThread::run() {
-	qDebug() << ""; // gilgil temp 2022.12.07
+	qDebug() << "beg"; // gilgil temp 2022.12.07
 	VpnClient* client = PVpnClient(parent());
 #ifdef SUPPORT_VPN_TLS
 	TlsClient* sockClient = &client->sockClient_;
@@ -125,7 +126,7 @@ void VpnClient::ReadAndReplyThread::run() {
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 
-	while (client->active()) {
+	while (true) {
 		char buf[MaxBufSize];
 		int readLen = sockClient->readAll(buf, 4); // header size
 		if (readLen != 4) break;
@@ -170,5 +171,5 @@ void VpnClient::ReadAndReplyThread::run() {
 		}
 		qWarning() << QString("pcap write %1").arg(packet.buf_.size_);
 	}
-	qDebug() << ""; // gilgil temp 2022.12.07
+	qDebug() << "end"; // gilgil temp 2022.12.07
 }
