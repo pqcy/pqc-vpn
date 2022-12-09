@@ -1,15 +1,24 @@
 #include "vpnserver.h"
 #include "net/pdu/getharppacket.h"
 
+#ifdef SUPPORT_VPN_TLS
+VpnServer::VpnServer(QObject* parent) : TlsServer(parent) {
+}
+#else // SUPPORT_VPN_TLS
 VpnServer::VpnServer(QObject* parent) : TcpServer(parent) {
 }
+#endif // SUPPORT_VPN_TLS
 
 VpnServer::~VpnServer() {
 	close();
 }
 
 bool VpnServer::doOpen() {
+#ifdef SUPPORT_VPN_TLS
+	if (!TlsServer::doOpen()) return false;
+#else // SUPPORT_VPN_TLS
 	if (!TcpServer::doOpen()) return false;
+#endif // SUPPORT_VPN_TLS
 
 	pcapDevice_.intfName_ = intfName_;
 	if (!pcapDevice_.open()) {

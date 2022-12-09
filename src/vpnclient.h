@@ -2,7 +2,7 @@
 
 #include <GSyncPcapDevice>
 #include <GRawIpSocketWrite>
-#include "tcpclient.h"
+#include "tlsclient.h"
 
 struct VpnClient : GStateObj {
 	static const int MaxBufSize = 16384;
@@ -17,7 +17,11 @@ struct VpnClient : GStateObj {
 	int port_;
 
 protected:
-	TcpClient tcpClient_{this};
+#ifdef SUPPORT_VPN_TLS
+	TlsClient sockClient_{this};
+#else // SUPPORT_VPN_TLS
+	TcpClient sockClient_{this};
+#endif // SUPPORT_VPN_TLS
 	GSyncPcapDevice dummyPcapDevice_{this};
 	GRawIpSocketWrite socketWrite_{this};
 

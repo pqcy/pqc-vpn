@@ -1,5 +1,4 @@
 #include "tlsserver.h"
-#include "tlscommon.h"
 
 TlsServer::TlsServer(QObject* parent) : TcpServer(parent) {
 	TlsCommon::initialize();

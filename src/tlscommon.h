@@ -8,6 +8,8 @@
 #include <netinet/ip.h>
 #include <sys/socket.h>
 
+#define SUPPORT_VPN_TLS
+
 struct TlsCommon {
 	static void initialize();
 };

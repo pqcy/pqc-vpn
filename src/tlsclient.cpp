@@ -1,5 +1,4 @@
 #include "tlsclient.h"
-#include "tlscommon.h"
 
 TlsClient::TlsClient(QObject* parent) : Client(parent) {
 	TlsCommon::initialize();

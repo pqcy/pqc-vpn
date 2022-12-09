@@ -8,6 +8,7 @@
 #include <openssl/err.h>
 
 #include "session.h"
+#include "tlscommon.h"
 
 struct TlsSession : public Session {
 	int sock_;

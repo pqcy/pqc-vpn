@@ -18,12 +18,12 @@ bool VpnClient::doOpen() {
 		SET_ERR(GErr::ValueIsNotZero, QString("ip is zero(%1)").arg(realIntfName_));
 		return false;
 	}
-	tcpClient_.localIp_ = ip;
-	tcpClient_.localPort_ = 0;
-	tcpClient_.ip_ = ip_;
-	tcpClient_.port_ = port_;
-	if (!tcpClient_.open()) {
-		err = tcpClient_.err;
+	sockClient_.localIp_ = ip;
+	sockClient_.localPort_ = 0;
+	sockClient_.ip_ = ip_;
+	sockClient_.port_ = port_;
+	if (!sockClient_.open()) {
+		err = sockClient_.err;
 		return false;
 	}
 
@@ -46,7 +46,7 @@ bool VpnClient::doOpen() {
 }
 
 bool VpnClient::doClose() {
-	tcpClient_.close();
+	sockClient_.close();
 	dummyPcapDevice_.close();
 	socketWrite_.close();
 
@@ -62,7 +62,11 @@ void VpnClient::CaptureAndSendThread::run() {
 	qDebug() << ""; // gilgil temp 2022.12.07
 	VpnClient* client = PVpnClient(parent());
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
-	TcpClient* tcpClient = &client->tcpClient_;
+#ifdef SUPPORT_VPN_TLS
+	TlsClient* sockClient = &client->sockClient_;
+#else // SUPPORT_VPN_TLS
+	TcpClient* sockClient = &client->sockClient_;
+#endif // SUPPORT_VPN_TLS
 
 	while (client->active()) {
 		GEthPacket packet;
@@ -89,7 +93,7 @@ void VpnClient::CaptureAndSendThread::run() {
 		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);
 		memcpy(&buf[4], packet.buf_.data_, len);
 
-		int writeLen = tcpClient->write(buf, 4 + len);
+		int writeLen = sockClient->write(buf, 4 + len);
 		if (writeLen == -1) break;
 		qDebug() << QString("session write %1").arg(4 + len);
 	}
@@ -99,12 +103,16 @@ void VpnClient::CaptureAndSendThread::run() {
 void VpnClient::ReadAndReplyThread::run() {
 	qDebug() << ""; // gilgil temp 2022.12.07
 	VpnClient* client = PVpnClient(parent());
-	TcpClient* tcpClient = &client->tcpClient_;
+#ifdef SUPPORT_VPN_TLS
+	TlsClient* sockClient = &client->sockClient_;
+#else // SUPPORT_VPN_TLS
+	TcpClient* sockClient = &client->sockClient_;
+#endif // SUPPORT_VPN_TLS
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 
 	while (client->active()) {
 		char buf[MaxBufSize];
-		int readLen = tcpClient->readAll(buf, 4); // header size
+		int readLen = sockClient->readAll(buf, 4); // header size
 		if (readLen != 4) break;
 		if (buf[0] != 'P' || buf[1] != 'Q') {
 			qWarning() << QString("invalid header %1 %2").arg(uint32_t(buf[0])).arg(uint32_t(buf[1]));
@@ -115,7 +123,7 @@ void VpnClient::ReadAndReplyThread::run() {
 		if (len > 10000) {
 			qWarning() << "too big len" << len;
 		}
-		readLen = tcpClient->readAll(buf, len);
+		readLen = sockClient->readAll(buf, len);
 		if (readLen != len) {
 			qWarning() << QString("readLen=%1 len=%2").arg(readLen).arg(len);
 			break;
