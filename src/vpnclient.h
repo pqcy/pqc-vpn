@@ -29,6 +29,8 @@ protected:
 	bool doOpen() override;
 	bool doClose() override;
 
+	static void runCommand(QString cmd);
+
 	struct CaptureAndSendThread : GThread {
 		CaptureAndSendThread(QObject* parent) : GThread(parent) {}
 		~CaptureAndSendThread() override {}
