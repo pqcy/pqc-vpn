@@ -34,6 +34,7 @@ bool VpnClient::doOpen() {
 		return false;
 	}
 
+	socketWrite_.intfName_ = dummyIntfName_;
 	if (!socketWrite_.open()) {
 		err = socketWrite_.err;
 		return false;
@@ -95,7 +96,7 @@ void VpnClient::CaptureAndSendThread::run() {
 
 		int writeLen = sockClient->write(buf, 4 + len);
 		if (writeLen == -1) break;
-		qDebug() << QString("session write %1").arg(4 + len);
+		qDebug() << QString("session write %1").arg(len);
 	}
 	qDebug() << ""; // gilgil temp 2022.12.07
 }
@@ -137,14 +138,7 @@ void VpnClient::ReadAndReplyThread::run() {
 		packet.buf_.size_ = len;
 		packet.parse();
 
-		GPacket::Result res;
-		GUdpHdr* udpHdr = packet.udpHdr_;
-		if (udpHdr != nullptr)
-			res = client->dummyPcapDevice_.write(&packet);
-		else
-			res = socketWrite->write(&packet);
-
-		//GPacket::Result
+		GPacket::Result res = socketWrite->write(&packet);
 		if (res != GPacket::Ok) {
 			qWarning() << QString("pcapDevice_.write(&packet) return %1").arg(int(res));
 		}

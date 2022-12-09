@@ -113,7 +113,7 @@ void VpnServer::CaptureAndProcessThread::run() {
 			qDebug() << QString("broadcast or multicast %1").arg(cim->count()); // gilgil temp 2022.12.08
 			for (ClientInfo* ci : *cim) {
 				ci->session_->write(buf, 4 + len);
-				qDebug() << QString("session write %1 %2").arg(4 + len).arg(QString(ci->mac_));
+				qDebug() << QString("session write %1 %2").arg(len).arg(QString(ci->mac_));
 			}
 		} else {
 			QMutexLocker ml(&cim->m_);
@@ -123,7 +123,7 @@ void VpnServer::CaptureAndProcessThread::run() {
 				Session* session = ci->session_;
 				int writeLen = session->write(buf, 4 + len);
 				if (writeLen == -1) break;
-				qDebug() << QString("session write %1 to %2").arg(4 + len).arg(QString(ci->mac_));
+				qDebug() << QString("session write %1 to %2").arg(len).arg(QString(ci->mac_));
 			}
 		}
 	}
