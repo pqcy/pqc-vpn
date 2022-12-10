@@ -97,7 +97,7 @@ void VpnClient::CaptureAndSendThread::run() {
 
 		int writeLen = sockClient->write(buf, 4 + len);
 		if (writeLen == -1) break;
-		qDebug() << QString("session write %1").arg(len);
+		// qDebug() << QString("session write %1").arg(len); // gilgil temp 2022.12.10
 	}
 	qDebug() << "end";
 }
@@ -153,7 +153,7 @@ void VpnClient::ReadAndReplyThread::run() {
 		if (res != GPacket::Ok) {
 			qWarning() << QString("pcapDevice_.write(&packet) return %1").arg(int(res));
 		}
-		qWarning() << QString("pcap write %1").arg(packet.buf_.size_);
+		// qWarning() << QString("pcap write %1").arg(packet.buf_.size_); // gilgil temp 2022.12.10
 	}
 	emit client->closed();
 	qDebug() << "end";

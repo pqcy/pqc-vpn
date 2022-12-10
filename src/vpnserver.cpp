@@ -106,7 +106,7 @@ void VpnServer::CaptureAndProcessThread::run() {
 		ipHdr->sum_ = htons(GIpHdr::calcChecksum(ipHdr));
 
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
-		qDebug() << QString("len=%1 smac=%2 dmac=%3").arg(len).arg(QString(smac)).arg(QString(dmac));
+		// qDebug() << QString("len=%1 smac=%2 dmac=%3").arg(len).arg(QString(smac)).arg(QString(dmac)); // gilgil temp 2022.12.10
 
 		char buf[MaxBufSize];
 		memcpy(buf, "PQ", 2);
@@ -128,7 +128,7 @@ void VpnServer::CaptureAndProcessThread::run() {
 				Session* session = ci->session_;
 				int writeLen = session->write(buf, 4 + len);
 				if (writeLen == -1) break;
-				qDebug() << QString("session write %1 to %2").arg(len).arg(QString(ci->mac_));
+				// qDebug() << QString("session write %1 to %2").arg(len).arg(QString(ci->mac_)); // gilgil temp 2022.12.10
 			}
 		}
 	}
@@ -160,7 +160,7 @@ void VpnServer::ArpResolveThread::run() {
 			for (ClientInfo* ci : *cim) {
 				if (ci->ip_ == tip) {
 					GEthArpPacket sendPacket;
-					sendPacket.init(ethHdr->smac(), ci->mac_, GArpHdr::Request, ci->mac_, ci->ip_, arpHdr->smac(), arpHdr->sip());
+					sendPacket.init(ethHdr->smac(), ci->mac_, GArpHdr::Reply, ci->mac_, ci->ip_, arpHdr->smac(), arpHdr->sip());
 					GBuf buf(pbyte(&sendPacket), sizeof(sendPacket));
 					GPacket::Result res = arpPcapDevice->write(buf);
 					if (res != GPacket::Ok)
@@ -243,9 +243,9 @@ void VpnServer::run(Session* session) {
 
 		GPacket::Result res = pcapDevice_.write(&packet);
 		if (res != GPacket::Ok) {
-			qWarning() << QString("pcapDevice_.write(&packet) return %d").arg(int(res));
+			qWarning() << QString("pcapDevice_.write(&packet) return %1 size=%2").arg(int(res)).arg(packet.buf_.size_);
 		}
-		qDebug() << QString("pcap write %1").arg(packet.buf_.size_);
+		// qDebug() << QString("pcap write %1").arg(packet.buf_.size_); // gilgil temp 2022.12.10
 
 	}
 	if (it != cim_.end())
