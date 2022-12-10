@@ -3,11 +3,11 @@
 
 #ifdef SUPPORT_VPN_TLS
 VpnServer::VpnServer(QObject* parent) : TlsServer(parent) {
-}
-#else // SUPPORT_VPN_TLS
+#else  // SUPPORT_VPN_TLS
 VpnServer::VpnServer(QObject* parent) : TcpServer(parent) {
-}
 #endif // SUPPORT_VPN_TLS
+	pcapDevice_.mtu_ = GPacket::MtuSize;
+}
 
 VpnServer::~VpnServer() {
 	close();
