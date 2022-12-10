@@ -32,7 +32,7 @@ protected:
 	bool doOpen() override;
 	bool doClose() override;
 
-	static void runCommand(QString cmd);
+	static void runCommand(QString cmd, bool sync = true);
 
 	struct CaptureAndSendThread : GThread {
 		CaptureAndSendThread(QObject* parent) : GThread(parent) {}

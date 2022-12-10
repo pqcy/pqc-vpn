@@ -44,7 +44,7 @@ bool VpnClient::doOpen() {
 	}
 
 	runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %2").arg(QString(ip_)).arg(realIntfName_));
-	//runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_));
+	runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_), false);
 
 	GThreadMgr::suspendStart();
 	captureAndSendThread_.start();
@@ -70,9 +70,14 @@ bool VpnClient::doClose() {
 	return true;
 }
 
-void VpnClient::runCommand(QString cmd) {
+void VpnClient::runCommand(QString cmd, bool sync) {
+	if (sync) {
+		QProcess process;
+		process.execute(cmd, QStringList{});
+	} else {
+		QProcess::startDetached(cmd, QStringList{});
+	}
 	qDebug() << cmd;
-	system(qPrintable(cmd));
 }
 
 void VpnClient::CaptureAndSendThread::run() {
