@@ -218,7 +218,7 @@ void VpnServer::run(Session* session) {
 				bool res = atm_.wait();
 				if (!res) {
 					qWarning() << QString("can not resolve %1").arg(QString(ip));
-					break;
+					continue;
 				}
 				it = atm_.find(ip);
 				Q_ASSERT(it != atm_.end());
