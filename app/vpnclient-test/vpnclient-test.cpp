@@ -8,22 +8,24 @@
 
 struct Param {
 	QString dummyIntfName_;
+	QString dummyIntfMac_;
 	QString realIntfName_;
-	GIp ip_;
-	int port_;
+	GIp serverIp_;
+	int serverPort_;
 
 	bool parse(int argc, char** argv) {
-		if (argc != 5) return false;
+		if (argc != 6) return false;
 		dummyIntfName_ = argv[1];
-		realIntfName_ = argv[2];
-		ip_ = GIp(argv[3]);
-		port_ = std::stoi(argv[4]);
+		dummyIntfMac_ = argv[2];
+		realIntfName_ = argv[3];
+		serverIp_ = GIp(argv[4]);
+		serverPort_ = std::stoi(argv[5]);
 		return true;
 	}
 
 	static void usage() {
-		printf("syntax : vpnclient-test <dummy interface> <real interface> <ip> <port>\n");
-		printf("sample : vpnclient-test dum0 wlan0 127.0.0.1 12345\n");
+		printf("syntax : vpnclient-test <dummy interface name> <dummy interface mac> <real interface name> <server ip> <server port>\n");
+		printf("sample : vpnclient-test dum0 00:00:00:11:11:11 wlan0 127.0.0.1 12345\n");
 	}
 };
 
@@ -65,9 +67,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	vc.dummyIntfName_ = param.dummyIntfName_;
+	vc.dummyIntfMac_ = param.dummyIntfMac_;
 	vc.realIntfName_ = param.realIntfName_;
-	vc.ip_ = param.ip_;
-	vc.port_ = param.port_;
+	vc.serverIp_ = param.serverIp_;
+	vc.serverPort_ = param.serverPort_;
 	if (!vc.open()) {
 		std::cerr << qPrintable(vc.err->msg()) << std::endl;
 		return -1;

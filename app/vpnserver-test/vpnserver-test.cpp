@@ -21,7 +21,7 @@ struct Param {
 	}
 
 	static void usage() {
-		printf("syntax : vpnserver-test <port> <pem file name> <interface>\n");
+		printf("syntax : vpnserver-test <port> <pem file name> <interface name>\n");
 		printf("sample : vpnserver-test 12345 rootCA.pem eth0\n");
 	}
 };

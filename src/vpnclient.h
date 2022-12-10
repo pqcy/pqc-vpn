@@ -14,10 +14,11 @@ public:
 	~VpnClient() override;
 
 	QString dummyIntfName_;
+	QString dummyIntfMac_;
 	QString realIntfName_;
 	QString intfName_;
-	GIp ip_;
-	int port_;
+	GIp serverIp_;
+	int serverPort_;
 
 protected:
 #ifdef SUPPORT_VPN_TLS
@@ -31,6 +32,9 @@ protected:
 protected:
 	bool doOpen() override;
 	bool doClose() override;
+
+	static void runCommand(QString program, bool sync = true);
+	void dhcpAndAddRouteTable();
 
 	struct CaptureAndSendThread : GThread {
 		CaptureAndSendThread(QObject* parent) : GThread(parent) {}

@@ -18,10 +18,22 @@ bool VpnClient::doOpen() {
 		SET_ERR(GErr::ValueIsNotZero, QString("ip is zero(%1)").arg(realIntfName_));
 		return false;
 	}
+
+	if (intf->isSameLanIp(serverIp_)) {
+		runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %3").arg(QString(serverIp_)).arg(realIntfName_));
+	} else {
+		GIp gateway = intf->gateway();
+		runCommand(QString("sudo route add -net %1 gw %2 netmask 255.255.255.255 dev %3").arg(QString(serverIp_), QString(gateway)).arg(realIntfName_));
+
+	}
+	runCommand(QString("sudo ifconfig %1 down").arg(dummyIntfName_));
+	runCommand(QString("sudo ip link set %1 addr %2").arg(dummyIntfName_).arg(dummyIntfMac_));
+	runCommand(QString("sudo ifconfig %1 up").arg(dummyIntfName_));
+
 	sockClient_.localIp_ = ip;
 	sockClient_.localPort_ = 0;
-	sockClient_.ip_ = ip_;
-	sockClient_.port_ = port_;
+	sockClient_.ip_ = serverIp_;
+	sockClient_.port_ = serverPort_;
 	if (!sockClient_.open()) {
 		err = sockClient_.err;
 		return false;
@@ -40,6 +52,9 @@ bool VpnClient::doOpen() {
 		return false;
 	}
 
+	std::thread* thread = new std::thread(&VpnClient::dhcpAndAddRouteTable, this);
+	thread->detach();
+
 	GThreadMgr::suspendStart();
 	captureAndSendThread_.start();
 	readAndReplyThread_.start();
@@ -50,6 +65,10 @@ bool VpnClient::doOpen() {
 
 bool VpnClient::doClose() {
 	qDebug() << "";
+
+	runCommand(QString("sudo route del -net %1 netmask 255.255.255.255").arg(QString(serverIp_)));
+	runCommand(QString("sudo ifconfig %1 down").arg(dummyIntfName_));
+
 	sockClient_.close();
 	dummyPcapDevice_.close();
 	socketWrite_.close();
@@ -60,6 +79,25 @@ bool VpnClient::doClose() {
 	readAndReplyThread_.wait();
 
 	return true;
+}
+
+void VpnClient::runCommand(QString program, bool sync) {
+	qDebug() << program;
+	int res;
+	if (sync) {
+		QProcess p;
+		res = p.execute(program);
+	} else {
+		res = QProcess::startDetached(program);
+	}
+	if (res < 0) {
+		qWarning() << QString("run %1 %2 return %3").arg(program).arg(res);
+	}
+}
+
+void VpnClient::dhcpAndAddRouteTable() {
+	runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_));
+	runCommand(QString("echo dhclient completed successfully"));
 }
 
 void VpnClient::CaptureAndSendThread::run() {
@@ -155,6 +193,6 @@ void VpnClient::ReadAndReplyThread::run() {
 		}
 		// qWarning() << QString("pcap write %1").arg(packet.buf_.size_); // gilgil temp 2022.12.10
 	}
-	emit client->closed();
 	qDebug() << "end";
+	emit client->closed();
 }
