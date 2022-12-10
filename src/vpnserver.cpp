@@ -79,8 +79,8 @@ void VpnServer::CaptureAndProcessThread::run() {
 	while (server->active()) {
 		GEthPacket packet;
 		GPacket::Result res = pcapDevice->read(&packet);
-		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
+		if (res == GPacket::Eof || res == GPacket::Fail) break;
 
 		GEthHdr* ethHdr = packet.ethHdr_;
 		if (ethHdr == nullptr) continue;
@@ -144,8 +144,8 @@ void VpnServer::ArpResolveThread::run() {
 	while (server->active()) {
 		GEthPacket packet;
 		GPacket::Result res =arpPcapDevice->read(&packet);
-		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
+		if (res == GPacket::Eof || res == GPacket::Fail) break;
 
 		GEthHdr* ethHdr = packet.ethHdr_;
 		if (ethHdr == nullptr) continue;

@@ -113,8 +113,8 @@ void VpnClient::CaptureAndSendThread::run() {
 	while (client->active()) {
 		GEthPacket packet;
 		GPacket::Result res = dummyPcapDevice->read(&packet);
-		if (res == GPacket::Eof || res == GPacket::Fail) break;
 		if (res == GPacket::None) continue;
+		if (res == GPacket::Eof || res == GPacket::Fail) break;
 
 		GIpHdr* ipHdr = packet.ipHdr_;
 		if (ipHdr == nullptr) continue;
