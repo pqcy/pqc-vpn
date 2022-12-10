@@ -27,9 +27,6 @@ bool VpnClient::doOpen() {
 		return false;
 	}
 
-	runCommand(QString("sudo ip link add %1 type dummy").arg(dummyIntfName_));
-	runCommand(QString("sudo ifconfig %1 up").arg(dummyIntfName_));
-
 	dummyPcapDevice_.intfName_ = dummyIntfName_;
 	dummyPcapDevice_.mtu_ = 1500;
 	if (!dummyPcapDevice_.open()) {
@@ -42,9 +39,6 @@ bool VpnClient::doOpen() {
 		err = socketWrite_.err;
 		return false;
 	}
-
-	runCommand(QString("sudo route add -net %1 netmask 255.255.255.255 dev %2").arg(QString(ip_)).arg(realIntfName_));
-	runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_), false);
 
 	GThreadMgr::suspendStart();
 	captureAndSendThread_.start();
@@ -65,19 +59,7 @@ bool VpnClient::doClose() {
 	readAndReplyThread_.quit();
 	readAndReplyThread_.wait();
 
-	runCommand(QString("sudo ifconfig %1 down").arg(dummyIntfName_));
-
 	return true;
-}
-
-void VpnClient::runCommand(QString cmd, bool sync) {
-	if (sync) {
-		QProcess process;
-		process.execute(cmd, QStringList{});
-	} else {
-		QProcess::startDetached(cmd, QStringList{});
-	}
-	qDebug() << cmd;
 }
 
 void VpnClient::CaptureAndSendThread::run() {

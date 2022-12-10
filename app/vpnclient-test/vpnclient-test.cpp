@@ -7,21 +7,23 @@
 #include "vpnclient.h"
 
 struct Param {
+	QString dummyIntfName_;
 	QString realIntfName_;
 	GIp ip_;
 	int port_;
 
 	bool parse(int argc, char** argv) {
-		if (argc != 4) return false;
-		realIntfName_ = argv[1];
-		ip_ = GIp(argv[2]);
-		port_ = std::stoi(argv[3]);
+		if (argc != 5) return false;
+		dummyIntfName_ = argv[1];
+		realIntfName_ = argv[2];
+		ip_ = GIp(argv[3]);
+		port_ = std::stoi(argv[4]);
 		return true;
 	}
 
 	static void usage() {
-		printf("syntax : vpnclient-test <real interface> <ip> <port>\n");
-		printf("sample : vpnclient-test wlan0 127.0.0.1 12345\n");
+		printf("syntax : vpnclient-test <dummy interface> <real interface> <ip> <port>\n");
+		printf("sample : vpnclient-test dum0 wlan0 127.0.0.1 12345\n");
 	}
 };
 
@@ -62,6 +64,7 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
+	vc.dummyIntfName_ = param.dummyIntfName_;
 	vc.realIntfName_ = param.realIntfName_;
 	vc.ip_ = param.ip_;
 	vc.port_ = param.port_;

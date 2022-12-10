@@ -13,7 +13,7 @@ public:
 	VpnClient(QObject* parent = nullptr);
 	~VpnClient() override;
 
-	QString dummyIntfName_{"dum0"};
+	QString dummyIntfName_;
 	QString realIntfName_;
 	QString intfName_;
 	GIp ip_;
@@ -31,8 +31,6 @@ protected:
 protected:
 	bool doOpen() override;
 	bool doClose() override;
-
-	static void runCommand(QString cmd, bool sync = true);
 
 	struct CaptureAndSendThread : GThread {
 		CaptureAndSendThread(QObject* parent) : GThread(parent) {}
