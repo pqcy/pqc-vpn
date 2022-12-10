@@ -150,16 +150,16 @@ void VpnClient::ReadAndReplyThread::run() {
 		packet.buf_.size_ = len;
 		packet.parse();
 
-		bool dummyWrite = false;
+		bool isDhcp = false;
 		GUdpHdr* udpHdr = packet.udpHdr_;
 		if (udpHdr != nullptr) {
 			uint16_t sport = udpHdr->sport();
 			uint16_t dport = udpHdr->dport();
 			if(sport == 68 || dport == 68) // DHCP
-				dummyWrite = true;
+				isDhcp = true;
 		}
 		GPacket::Result res;
-		if (dummyWrite)
+		if (isDhcp)
 			res = dummyPcapDevice->write(&packet);
 		else
 			res = socketWrite->write(&packet);

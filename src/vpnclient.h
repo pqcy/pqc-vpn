@@ -13,7 +13,7 @@ public:
 	VpnClient(QObject* parent = nullptr);
 	~VpnClient() override;
 
-	QString dummyIntfName_;
+	QString dummyIntfName_{"dum0"};
 	QString realIntfName_;
 	QString intfName_;
 	GIp ip_;
