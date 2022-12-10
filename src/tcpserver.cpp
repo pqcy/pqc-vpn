@@ -99,6 +99,7 @@ void TcpServer::_run(TcpSession* session) {
 	sessions_.unlock();
 
 	run(session);
+	session->disconnect();
 
 	sessions_.lock();
 	sessions_.remove(session);

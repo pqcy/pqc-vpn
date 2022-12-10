@@ -113,6 +113,7 @@ void TlsServer::_run(TlsSession* session) {
 	sessions_.unlock();
 
 	run(session);
+	session->disconnect();
 
 	sessions_.lock();
 	sessions_.remove(session);
