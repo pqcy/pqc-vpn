@@ -97,7 +97,7 @@ void VpnClient::runCommand(QString program, bool sync) {
 
 void VpnClient::dhcpAndAddRouteTable() {
 	runCommand(QString("sudo dhclient -i %1").arg(dummyIntfName_));
-	runCommand(QString("echo dhclient completed successfully"));
+	runCommand(QString("echo dhclient finished"));
 }
 
 void VpnClient::CaptureAndSendThread::run() {
