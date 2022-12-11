@@ -11,5 +11,6 @@
 // #define SUPPORT_VPN_TLS
 
 struct TlsCommon {
+	static const int MaxBufSize = 65536;
 	static void initialize();
 };

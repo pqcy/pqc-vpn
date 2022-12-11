@@ -106,6 +106,10 @@ void VpnServer::CaptureAndProcessThread::run() {
 		ipHdr->sum_ = htons(GIpHdr::calcChecksum(ipHdr));
 
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
+		if (len > MaxBufSize - 4) {
+			qWarning() << QString("len(%1) is too big").arg(len);
+			continue;
+		}
 		// qDebug() << QString("len=%1 smac=%2 dmac=%3").arg(len).arg(QString(smac)).arg(QString(dmac)); // gilgil temp 2022.12.10
 
 		char buf[MaxBufSize];
@@ -186,8 +190,8 @@ void VpnServer::run(Session* session) {
 			break;
 		}
 		uint16_t len = ntohs(*reinterpret_cast<uint16_t*>(&buf[2]));
-		if (len > 10000) {
-			qWarning() << "too big len" << len;
+		if (len > MaxBufSize) {
+			qWarning() << QString("len(%1) is too big").arg(len);
 		}
 		readLen = session->readAll(buf, len);
 		if (readLen != len) {
@@ -236,7 +240,7 @@ void VpnServer::run(Session* session) {
 				QMutexLocker ml(&cim_.m_);
 				it  = cim_.insert(mac, &ci);
 			}
-			qWarning() << QString("insert %1").arg(QString(mac));
+			qDebug() << QString("insert %1").arg(QString(mac));
 		}
 		GIp sip = ipHdr->sip();
 		if (!sip.isNull())

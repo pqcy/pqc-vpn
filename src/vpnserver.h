@@ -14,8 +14,6 @@ struct VpnServer : TcpServer {
 	Q_OBJECT
 
 public:
-	static const int MaxBufSize = 16384;
-
 	struct ClientInfo {
 		GMac mac_{GMac::nullMac()};
 		GIp ip_{0};

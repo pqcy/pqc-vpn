@@ -128,7 +128,7 @@ void VpnClient::CaptureAndSendThread::run() {
 		ipHdr->sum_ = htons(GIpHdr::calcChecksum(ipHdr));
 
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
-		char buf[MaxBufSize];
+		char buf[TlsCommon::MaxBufSize];
 		memcpy(buf, "PQ", 2);
 		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);
 		memcpy(&buf[4], packet.buf_.data_, len);
@@ -152,7 +152,7 @@ void VpnClient::ReadAndReplyThread::run() {
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 
 	while (client->active()) {
-		char buf[MaxBufSize];
+		char buf[TlsCommon::MaxBufSize];
 		int readLen = sockClient->readAll(buf, 4); // header size
 		if (readLen != 4) break;
 		if (buf[0] != 'P' || buf[1] != 'Q') {
