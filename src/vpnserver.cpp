@@ -106,13 +106,13 @@ void VpnServer::CaptureAndProcessThread::run() {
 		ipHdr->sum_ = htons(GIpHdr::calcChecksum(ipHdr));
 
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
-		if (len > MaxBufSize - 4) {
+		if (len > TlsCommon::MaxBufSize - 4) {
 			qWarning() << QString("len(%1) is too big").arg(len);
 			continue;
 		}
 		// qDebug() << QString("len=%1 smac=%2 dmac=%3").arg(len).arg(QString(smac)).arg(QString(dmac)); // gilgil temp 2022.12.10
 
-		char buf[MaxBufSize];
+		char buf[TlsCommon::MaxBufSize];
 		memcpy(buf, "PQ", 2);
 		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);
 		memcpy(&buf[4], packet.buf_.data_, len);
@@ -182,7 +182,7 @@ void VpnServer::run(Session* session) {
 	ClientInfoMap::iterator it = cim_.end();
 
 	while (active()) {
-		char buf[MaxBufSize];
+		char buf[TlsCommon::MaxBufSize];
 		int readLen = session->readAll(buf, 4); // header size
 		if (readLen != 4) break;
 		if (buf[0] != 'P' || buf[1] != 'Q') {
@@ -190,8 +190,9 @@ void VpnServer::run(Session* session) {
 			break;
 		}
 		uint16_t len = ntohs(*reinterpret_cast<uint16_t*>(&buf[2]));
-		if (len > MaxBufSize) {
+		if (len > TlsCommon::MaxBufSize) {
 			qWarning() << QString("len(%1) is too big").arg(len);
+			break;
 		}
 		readLen = session->readAll(buf, len);
 		if (readLen != len) {
