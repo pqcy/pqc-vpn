@@ -66,9 +66,6 @@ bool VpnClient::doOpen() {
 bool VpnClient::doClose() {
 	qDebug() << "";
 
-	runCommand(QString("sudo route del -net %1 netmask 255.255.255.255").arg(QString(serverIp_)));
-	runCommand(QString("sudo ifconfig %1 down").arg(dummyIntfName_));
-
 	sockClient_.close();
 	dummyPcapDevice_.close();
 	socketWrite_.close();
@@ -77,6 +74,9 @@ bool VpnClient::doClose() {
 	captureAndSendThread_.wait();
 	readAndReplyThread_.quit();
 	readAndReplyThread_.wait();
+
+	runCommand(QString("sudo route del -net %1 netmask 255.255.255.255").arg(QString(serverIp_)));
+	runCommand(QString("sudo ifconfig %1 down").arg(dummyIntfName_));
 
 	return true;
 }
