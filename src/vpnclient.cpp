@@ -128,6 +128,10 @@ void VpnClient::CaptureAndSendThread::run() {
 		ipHdr->sum_ = htons(GIpHdr::calcChecksum(ipHdr));
 
 		uint16_t len = sizeof(GEthHdr) + ipHdr->len();
+		if (len > TlsCommon::MaxBufSize - 4) {
+			qWarning() << QString("len(%1) is too big").arg(len);
+			continue;
+		}
 		char buf[TlsCommon::MaxBufSize];
 		memcpy(buf, "PQ", 2);
 		*reinterpret_cast<uint16_t*>(&buf[2]) = htons(len);
