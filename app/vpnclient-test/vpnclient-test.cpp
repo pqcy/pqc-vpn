@@ -41,9 +41,7 @@ public:
 
 public slots:
 	void processClosed() {
-		qDebug() << "bef vc.close()";
-		vc.close();
-		qDebug() << "aft vc.close()";
+		GApp::quit();
 	}
 } obj;
 
@@ -51,7 +49,6 @@ void signalHandler(int signo) {
 	qWarning() << QString("signal occured %1").arg(signo);
 	vc.close();
 	qWarning() << "vpnclient terminated successfully";
-	exit(0);
 }
 
 int main(int argc, char* argv[]) {
