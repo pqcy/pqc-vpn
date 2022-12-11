@@ -1,9 +1,11 @@
 bin/
 build-*/
+setup/
 Makefile
 moc_*
 *.a
 *.o
+*.gz
 *.moc
 *.stash
 *.user
