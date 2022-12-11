@@ -76,10 +76,9 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	while (vc.active())
-		QThread::sleep(1);
-
+	int res = a.exec();
 	vc.close();
+	return res;
 }
 
 #include "vpnclient-test.moc"

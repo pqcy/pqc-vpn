@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	while (true) QThread::sleep(1);
-
+	int res = a.exec();
 	cs.close();
+	return res;
 }

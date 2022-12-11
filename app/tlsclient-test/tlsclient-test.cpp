@@ -35,6 +35,15 @@ void readAndPrint(Session* session) {
 	exit(0);
 }
 
+void inputAndSend(Session* session) {
+	while (true) {
+		std::string msg;
+		std::getline(std::cin, msg);
+		int writeLen = session->write(msg.data(), msg.size());
+		if (writeLen == -1) break;
+	}
+}
+
 int main(int argc, char* argv[]) {
 	GApp a(argc, argv);
 
@@ -53,14 +62,14 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	std::thread thread(&readAndPrint, &tc);
+	std::thread readAndPrintThread(&readAndPrint, &tc);
+	std::thread inputAndSendThread(&inputAndSend, &tc);
 
-	while (true) {
-		std::string msg;
-		std::getline(std::cin, msg);
-		int writeLen = tc.write(msg.data(), msg.size());
-		if (writeLen == -1) break;
-	}
+	int res = a.exec();
+
+	readAndPrintThread.join();
+	inputAndSendThread.join();
 
 	tc.close();
+	return res;
 }

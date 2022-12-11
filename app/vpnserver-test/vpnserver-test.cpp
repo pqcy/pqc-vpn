@@ -69,9 +69,9 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	while (true) QThread::sleep(1);
-
+	int res = a.exec();
 	vs.close();
+	return res;
 }
 
 #include "vpnserver-test.moc"
