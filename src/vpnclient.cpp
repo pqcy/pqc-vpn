@@ -160,8 +160,9 @@ void VpnClient::ReadAndReplyThread::run() {
 			break;
 		}
 		uint16_t len = ntohs(*reinterpret_cast<uint16_t*>(&buf[2]));
-		if (len > 10000) {
-			qWarning() << "too big len" << len;
+		if (len > TlsCommon::MaxBufSize) {
+			qWarning() << QString("len(%1) is too big").arg(len);
+			break;
 		}
 		readLen = sockClient->readAll(buf, len);
 		if (readLen != len) {
