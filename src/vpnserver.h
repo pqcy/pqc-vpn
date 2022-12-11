@@ -17,9 +17,9 @@ public:
 	static const int MaxBufSize = 16384;
 
 	struct ClientInfo {
-		GMac mac_;
-		GIp ip_;
-		Session* session_;
+		GMac mac_{GMac::nullMac()};
+		GIp ip_{0};
+		Session* session_{nullptr};
 	};
 	struct ClientInfoMap : QMap<GMac, ClientInfo*> {
 		QMutex m_;

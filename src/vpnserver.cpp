@@ -249,10 +249,12 @@ void VpnServer::run(Session* session) {
 		// qDebug() << QString("pcap write %1").arg(packet.buf_.size_); // gilgil temp 2022.12.10
 
 	}
-	if (it != cim_.end())
+
 	{
 		QMutexLocker ml(&cim_.m_);
-		cim_.erase(it);
+		GMac mac = ci.mac_;
+		if (!mac.isNull())
+			cim_.remove(mac);
 	}
 	qDebug() << "end";
 }
