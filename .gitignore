@@ -1,8 +1,10 @@
 bin/
 build-*/
 Makefile
+moc_*
 *.a
 *.o
+*.moc
 *.stash
 *.user
 
