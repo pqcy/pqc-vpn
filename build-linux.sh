@@ -29,6 +29,10 @@ cp ../../bin/start.sh .
 cp ../../bin/stop.sh .
 mkdir -p crt
 cp ../../bin/crt/* crt/
+cp ../../bin/tcpclient-test .; strip tcpclient-test
+cp ../../bin/tcpserver-test .; strip tcpserver-test
+cp ../../bin/tlsclient-test .; strip tlsclient-test
+cp ../../bin/tlsserver-test .; strip tlsserver-test
 cp ../../bin/vpnclient-test .; strip vpnclient-test
 cp ../../bin/vpnserver-test .; strip vpnserver-test
 cp ../../setup/setup-linux.sh .
