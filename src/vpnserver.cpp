@@ -22,13 +22,13 @@ bool VpnServer::doOpen() {
 	if (!TcpServer::doOpen()) return false;
 #endif // SUPPORT_VPN_TLS
 
-		pcapDevice_.intfName_ = intfName_;
-		if (!pcapDevice_.open()) {
-			err = pcapDevice_.err;
+	pcapDevice_.intfName_ = intfName_;
+	if (!pcapDevice_.open()) {
+		err = pcapDevice_.err;
 			return false;
-		}
+	}
 
-		arpPcapDevice_.intfName_ = intfName_;
+	arpPcapDevice_.intfName_ = intfName_;
 		arpPcapDevice_.filter_ = "arp";
 		if (!arpPcapDevice_.open()) {
 			err = arpPcapDevice_.err;
@@ -250,9 +250,14 @@ void VpnServer::run(Session* session) {
 			}
 			qDebug() << QString("insert %1").arg(QString(mac));
 		}
-		GIp sip = ipHdr->sip();
-		if (!sip.isNull())
-			(*it)->ip_ = sip;
+
+		if (ci.ip_.isNull()) {
+			GIp sip = ipHdr->sip();
+			if (!sip.isNull()) {
+				ci.ip_ = sip;
+				qDebug() << QString("mac(%1) ip(%2)").arg(QString(ci.mac_), QString(ci.ip_));
+			}
+		}
 
 		GPacket::Result res = pcapDevice_.write(&packet);
 		if (res != GPacket::Ok) {
