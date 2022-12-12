@@ -14,47 +14,49 @@ VpnServer::~VpnServer() {
 }
 
 bool VpnServer::doOpen() {
+	qDebug() << "beg";
+
 #ifdef SUPPORT_VPN_TLS
 	if (!TlsServer::doOpen()) return false;
 #else // SUPPORT_VPN_TLS
 	if (!TcpServer::doOpen()) return false;
 #endif // SUPPORT_VPN_TLS
 
-	pcapDevice_.intfName_ = intfName_;
-	if (!pcapDevice_.open()) {
-		err = pcapDevice_.err;
-		return false;
-	}
+		pcapDevice_.intfName_ = intfName_;
+		if (!pcapDevice_.open()) {
+			err = pcapDevice_.err;
+			return false;
+		}
 
-	arpPcapDevice_.intfName_ = intfName_;
-	arpPcapDevice_.filter_ = "arp";
-	if (!arpPcapDevice_.open()) {
-		err = arpPcapDevice_.err;
-		return false;
-	}
+		arpPcapDevice_.intfName_ = intfName_;
+		arpPcapDevice_.filter_ = "arp";
+		if (!arpPcapDevice_.open()) {
+			err = arpPcapDevice_.err;
+			return false;
+		}
 
-	atm_.intfName_ = intfName_;
-	if (!atm_.open()) {
-		err = atm_.err;
-		return false;
-	}
+		atm_.intfName_ = intfName_;
+		if (!atm_.open()) {
+			err = atm_.err;
+			return false;
+		}
 
-	intf_ = GNetInfo::instance().intfList().findByName(intfName_);
-	if (intf_ == nullptr) {
-		QString msg = QString("can not find interface for %1").arg(intfName_);
-		SET_ERR(GErr::ValueIsNull, msg);
-		return false;
-	}
+		intf_ = GNetInfo::instance().intfList().findByName(intfName_);
+		if (intf_ == nullptr) {
+			QString msg = QString("can not find interface for %1").arg(intfName_);
+			SET_ERR(GErr::ValueIsNull, msg);
+			return false;
+		}
 
-	GThreadMgr::suspendStart();
 	captureAndProcessThread_.start();
 	arpResolveThread_.start();
-	GThreadMgr::resumeStart();
 
+	qDebug() << "end";
 	return true;
 }
 
 bool VpnServer::doClose() {
+	qDebug() << "beg";
 #ifdef SUPPORT_VPN_TLS
 	TlsServer::doClose();
 #else // SUPPORT_VPN_TLS
@@ -66,6 +68,7 @@ bool VpnServer::doClose() {
 	captureAndProcessThread_.wait();
 	arpResolveThread_.quit();
 	arpResolveThread_.wait();
+	qDebug() << "end";
 	return true;
 }
 
@@ -119,10 +122,10 @@ void VpnServer::CaptureAndProcessThread::run() {
 
 		if (dmac.isBroadcast() || dmac.isMulticast()) {
 			QMutexLocker ml(&cim->m_);
-			qDebug() << QString("broadcast or multicast %1").arg(cim->count()); // gilgil temp 2022.12.08
+			// qDebug() << QString("broadcast or multicast %1").arg(cim->count()); // gilgil temp 2022.12.08
 			for (ClientInfo* ci : *cim) {
 				ci->session_->write(buf, 4 + len);
-				qDebug() << QString("session write %1 %2").arg(len).arg(QString(ci->mac_));
+				// qDebug() << QString("session write %1 %2").arg(len).arg(QString(ci->mac_)); // gilgil temp 2022.12.13
 			}
 		} else {
 			QMutexLocker ml(&cim->m_);
@@ -239,6 +242,10 @@ void VpnServer::run(Session* session) {
 			ci.session_ = session;
 			{
 				QMutexLocker ml(&cim_.m_);
+				if (cim_.find(mac) != cim_.end()) {
+					qWarning() << QString("mac(%1) already exists").arg(QString(mac));
+					break;
+				}
 				it  = cim_.insert(mac, &ci);
 			}
 			qDebug() << QString("insert %1").arg(QString(mac));
@@ -251,15 +258,11 @@ void VpnServer::run(Session* session) {
 		if (res != GPacket::Ok) {
 			qWarning() << QString("pcapDevice_.write(&packet) return %1 size=%2").arg(int(res)).arg(packet.buf_.size_);
 		}
-		// qDebug() << QString("pcap write %1").arg(packet.buf_.size_); // gilgil temp 2022.12.10
-
 	}
 
-	{
+	if (it != cim_.end()) {
 		QMutexLocker ml(&cim_.m_);
-		GMac mac = ci.mac_;
-		if (!mac.isNull())
-			cim_.remove(mac);
+		cim_.erase(it);
 	}
 	qDebug() << "end";
 }
