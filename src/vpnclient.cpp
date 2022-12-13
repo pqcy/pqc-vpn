@@ -147,11 +147,17 @@ void VpnClient::CaptureAndSendThread::run() {
 void VpnClient::ReadAndReplyThread::run() {
 	qDebug() << "beg";
 	VpnClient* client = PVpnClient(parent());
+
+
+#ifdef SUPPORT_VPN_TCP
+	TcpClient* sockClient = &client->sockClient_;
+#endif
 #ifdef SUPPORT_VPN_TLS
 	TlsClient* sockClient = &client->sockClient_;
-#else // SUPPORT_VPN_TLS
-	TcpClient* sockClient = &client->sockClient_;
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	PqcClient* sockClient = &client->sockClient_;
+#endif
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 	GRawIpSocketWrite* socketWrite = &client->socketWrite_;
 

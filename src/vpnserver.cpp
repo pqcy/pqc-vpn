@@ -1,11 +1,15 @@
 #include "vpnserver.h"
 #include "net/pdu/getharppacket.h"
 
+#ifdef SUPPORT_VPN_TCP
+VpnServer::VpnServer(QObject* parent) : TcpServer(parent) {
+#endif
 #ifdef SUPPORT_VPN_TLS
 VpnServer::VpnServer(QObject* parent) : TlsServer(parent) {
-#else  // SUPPORT_VPN_TLS
-VpnServer::VpnServer(QObject* parent) : TcpServer(parent) {
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	VpnServer::VpnServer(QObject* parent) : PqcServer(parent) {
+#endif
 	pcapDevice_.mtu_ = GPacket::MtuSize;
 }
 
@@ -16,11 +20,15 @@ VpnServer::~VpnServer() {
 bool VpnServer::doOpen() {
 	qDebug() << "beg";
 
+#ifdef SUPPORT_VPN_TCP
+	if (!TcpServer::doOpen()) return false;
+#endif
 #ifdef SUPPORT_VPN_TLS
 	if (!TlsServer::doOpen()) return false;
-#else // SUPPORT_VPN_TLS
-	if (!TcpServer::doOpen()) return false;
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	if (!PqcServer::doOpen()) return false;
+#endif
 
 	pcapDevice_.intfName_ = intfName_;
 	if (!pcapDevice_.open()) {
@@ -57,11 +65,16 @@ bool VpnServer::doOpen() {
 
 bool VpnServer::doClose() {
 	qDebug() << "beg";
+
+#ifdef SUPPORT_VPN_TCP
+	TcpServer::doClose();
+#endif
 #ifdef SUPPORT_VPN_TLS
 	TlsServer::doClose();
-#else // SUPPORT_VPN_TLS
-	TcpServer::doClose();
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	PqcServer::doClose();
+#endif
 	pcapDevice_.close();
 	atm_.close();
 	captureAndProcessThread_.quit();

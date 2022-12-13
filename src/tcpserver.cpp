@@ -1,9 +1,11 @@
 #include "tcpserver.h"
 
 TcpServer::TcpServer(QObject* parent) : Server(parent) {
+	qDebug() << "";
 }
 
 TcpServer::~TcpServer() {
+	qDebug() << "";
 	close();
 }
 

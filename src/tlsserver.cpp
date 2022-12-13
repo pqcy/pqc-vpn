@@ -1,10 +1,12 @@
 #include "tlsserver.h"
 
 TlsServer::TlsServer(QObject* parent) : TcpServer(parent) {
+	qDebug() << "";
 	TlsCommon::initialize();
 }
 
 TlsServer::~TlsServer() {
+	qDebug() << "";
 	close();
 }
 

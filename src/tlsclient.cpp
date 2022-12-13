@@ -1,10 +1,12 @@
 #include "tlsclient.h"
 
 TlsClient::TlsClient(QObject* parent) : Client(parent) {
+	qDebug() << "";
 	TlsCommon::initialize();
 }
 
 TlsClient::~TlsClient() {
+	qDebug() << "";
 	close();
 }
 

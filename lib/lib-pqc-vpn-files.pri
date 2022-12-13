@@ -1,5 +1,7 @@
 SOURCES += \
-	$${PWD}/../src/client.cpp \
+$${PWD}/../src/client.cpp \
+$${PWD}/../src/pqcclient.cpp \
+	$${PWD}/../src/pqcserver.cpp \
 	$${PWD}/../src/server.cpp \
 	$${PWD}/../src/session.cpp \
 	$${PWD}/../src/tcpclient.cpp \
@@ -14,6 +16,8 @@ SOURCES += \
 
 HEADERS += \
 	$${PWD}/../src/client.h \
+	$${PWD}/../src/pqcclient.h \
+	$${PWD}/../src/pqcserver.h \
 	$${PWD}/../src/server.h \
 	$${PWD}/../src/session.h \
 	$${PWD}/../src/tcpclient.h \

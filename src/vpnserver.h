@@ -4,13 +4,17 @@
 #include <GAtm>
 #include <GPcapDeviceWrite>
 #include <GSyncPcapDevice>
-#include "tlsserver.h"
+#include "pqcserver.h"
 
+#ifdef SUPPORT_VPN_TCP
+struct VpnServer : TcpServer {
+#endif
 #ifdef SUPPORT_VPN_TLS
 struct VpnServer : TlsServer {
-#else // SUPPORT_VPN_TLS
-struct VpnServer : TcpServer {
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	struct VpnServer : PqcServer {
+#endif
 	Q_OBJECT
 
 public:

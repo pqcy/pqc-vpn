@@ -19,11 +19,15 @@ public:
 	int serverPort_;
 
 protected:
+#ifdef SUPPORT_VPN_TCP
+	TcpClient sockClient_{this};
+#endif
 #ifdef SUPPORT_VPN_TLS
 	TlsClient sockClient_{this};
-#else // SUPPORT_VPN_TLS
-	TcpClient sockClient_{this};
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	PqcClient sockClient_{this};
+#endif
 	GSyncPcapDevice dummyPcapDevice_{this};
 	GRawIpSocketWrite socketWrite_{this};
 

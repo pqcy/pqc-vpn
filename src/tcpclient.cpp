@@ -1,10 +1,11 @@
 #include "tcpclient.h"
 
 TcpClient::TcpClient(QObject* parent) : Client(parent) {
-
+	qDebug() << "";
 }
 
 TcpClient::~TcpClient() {
+	qDebug() << "";
 	close();
 }
 
