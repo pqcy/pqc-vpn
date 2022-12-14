@@ -9,6 +9,10 @@ PqcClient::~PqcClient() {
 	close();
 }
 
+int PqcClient::configCtx() {
+
+}
+
 bool PqcClient::doOpen() {
 	return TlsClient::doOpen();
 }

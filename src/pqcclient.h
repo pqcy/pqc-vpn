@@ -7,6 +7,9 @@ struct PqcClient : public TlsClient {
 	~PqcClient() override;
 
 protected:
+	int configCtx() override;
+
+protected:
 	bool doOpen() override;
 	bool doClose() override;
 };

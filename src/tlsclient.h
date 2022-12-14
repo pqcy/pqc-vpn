@@ -11,6 +11,9 @@ struct TlsClient : public Client, public TlsSession {
 	SSL_CTX *ctx_{nullptr};
 
 protected:
+	virtual int configCtx();
+
+protected:
 	bool doOpen() override;
 	bool doClose() override;
 };

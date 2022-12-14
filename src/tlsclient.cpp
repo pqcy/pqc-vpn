@@ -10,6 +10,10 @@ TlsClient::~TlsClient() {
 	close();
 }
 
+int TlsClient::configCtx() {
+	return 1;
+}
+
 bool TlsClient::doOpen() {
 	tcpClient_.ip_ = ip_;
 	tcpClient_.port_ = port_;
