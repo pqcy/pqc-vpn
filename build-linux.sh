@@ -29,6 +29,8 @@ cp ../../bin/start.sh .
 cp ../../bin/stop.sh .
 mkdir -p crt
 cp ../../bin/crt/* crt/
+cp ../../bin/pqcclient-test .; strip pqcclient-test
+cp ../../bin/pqcserver-test .; strip pqcserver-test
 cp ../../bin/tcpclient-test .; strip tcpclient-test
 cp ../../bin/tcpserver-test .; strip tcpserver-test
 cp ../../bin/tlsclient-test .; strip tlsclient-test
@@ -36,6 +38,7 @@ cp ../../bin/tlsserver-test .; strip tlsserver-test
 cp ../../bin/vpnclient-test .; strip vpnclient-test
 cp ../../bin/vpnserver-test .; strip vpnserver-test
 cp ../../setup/setup-linux.sh .
+cp ../openssl/lib*.so* .; strip lib*.so*
 
 #
 # qt files
