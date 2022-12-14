@@ -38,7 +38,7 @@ cp ../../bin/tlsserver-test .; strip tlsserver-test
 cp ../../bin/vpnclient-test .; strip vpnclient-test
 cp ../../bin/vpnserver-test .; strip vpnserver-test
 cp ../../setup/setup-linux.sh .
-cp ../openssl/lib*.so* .; strip lib*.so*
+cp ../../../openssl/lib*.so* .; strip lib*.so*
 
 #
 # qt files
