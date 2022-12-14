@@ -13,6 +13,6 @@
 #define SUPPORT_VPN_PQC
 
 struct TlsCommon {
-	static const int MaxBufSize = 65536;
+	static const int MaxBufSize = 65530;
 	static void initialize();
 };

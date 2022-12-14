@@ -2,7 +2,7 @@
 
 #include <GSyncPcapDevice>
 #include <GRawIpSocketWrite>
-#include "tlsclient.h"
+#include "pqcclient.h"
 
 struct VpnClient : GStateObj {
 	Q_OBJECT

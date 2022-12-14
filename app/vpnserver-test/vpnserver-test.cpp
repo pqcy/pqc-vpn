@@ -60,9 +60,14 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 	vs.port_ = param.port_;
+#ifdef SUPPORT_VPN_TCP
+#endif
 #ifdef SUPPORT_VPN_TLS
 	vs.pemFileName_ = param.pemFileName_;
-#endif // SUPPORT_VPN_TLS
+#endif
+#ifdef SUPPORT_VPN_PQC
+	vs.pemFileName_ = param.pemFileName_;
+#endif
 	vs.intfName_ = param.intfName_.data();
 	if (!vs.open()) {
 		std::cerr << qPrintable(vs.err->msg()) << std::endl;
