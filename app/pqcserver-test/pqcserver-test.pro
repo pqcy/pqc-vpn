@@ -7,4 +7,4 @@ INCLUDEPATH += ../../src
 INCLUDEPATH += ../../../openssl/include ../../../openssl/oqs/include
 LIBS += -L../../../openssl -lssl -lcrypto
 DESTDIR=../../bin
-SOURCES += vpnserver-test.cpp
+SOURCES += pqcserver-test.cpp

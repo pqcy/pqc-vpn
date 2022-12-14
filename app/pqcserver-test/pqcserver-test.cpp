@@ -3,9 +3,9 @@
 #include <thread>
 #include <GApp>
 #include <GThread>
-#include "tlsserver.h"
+#include "pqcserver.h"
 
-struct ChatServer : public TlsServer {
+struct ChatServer : public PqcServer {
 protected:
 	void run(Session* session) override {
 		std::puts("connected");
@@ -36,8 +36,8 @@ struct Param {
 	}
 
 	static void usage() {
-		printf("syntax : tlsserver-test <port> <pem file name>\n");
-		printf("sample : tlsserver-test 12345 crt/rootCA.pem\n");
+		printf("syntax : pqcserver-test <port> <pem file name>\n");
+		printf("sample : pqcserver-test 12345 crt/rootCA.pem\n");
 	}
 };
 
