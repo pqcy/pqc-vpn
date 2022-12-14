@@ -34,14 +34,20 @@ bool TlsClient::doOpen() {
 		return false;
 	}
 
-	sock_ = tcpClient_.sock_;
+	int res = configCtx();
+	if(res <= 0){
+		SET_ERR(GErr::Fail, QString("configCtx return %1").arg(res));
+		return false;
+	}
+
 	ssl_ = SSL_new(ctx_);
 	if (ssl_ == nullptr) {
 		SET_ERR(GErr::Fail, "SSL_new return null");
 		return false;
 	}
 
-	int res = SSL_set_fd(ssl_, sock_);
+	sock_ = tcpClient_.sock_;
+	res = SSL_set_fd(ssl_, sock_);
 	if (res != 1) {
 		SET_ERR(GErr::Fail, "SSL_set_fd return null");
 		return false;

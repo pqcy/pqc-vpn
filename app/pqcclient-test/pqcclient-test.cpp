@@ -3,7 +3,7 @@
 
 #include <GApp>
 
-#include "tlsclient.h"
+#include "pqcclient.h"
 
 struct Param {
 	GIp ip_;
@@ -47,7 +47,7 @@ void inputAndSend(Session* session) {
 int main(int argc, char* argv[]) {
 	GApp a(argc, argv);
 
-	TlsClient tc;
+	PqcClient pc;
 
 	Param param;
 	if (!param.parse(argc, argv)) {
@@ -55,21 +55,21 @@ int main(int argc, char* argv[]) {
 		return -1;
 	}
 
-	tc.ip_ = param.ip_;
-	tc.port_ = param.port_;
-	if (!tc.open()) {
-		std::cerr << qPrintable(tc.err->msg()) << std::endl;
+	pc.ip_ = param.ip_;
+	pc.port_ = param.port_;
+	if (!pc.open()) {
+		std::cerr << qPrintable(pc.err->msg()) << std::endl;
 		return -1;
 	}
 
-	std::thread readAndPrintThread(&readAndPrint, &tc);
-	std::thread inputAndSendThread(&inputAndSend, &tc);
+	std::thread readAndPrintThread(&readAndPrint, &pc);
+	std::thread inputAndSendThread(&inputAndSend, &pc);
 
 	int res = a.exec();
 
 	readAndPrintThread.join();
 	inputAndSendThread.join();
 
-	tc.close();
+	pc.close();
 	return res;
 }
