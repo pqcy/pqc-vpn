@@ -65,7 +65,7 @@ bool TlsClient::doOpen() {
 	res = SSL_connect(ssl_);
 	if (res <= 0) {
 		int sslError = SSL_get_error(ssl_, res);
-		SET_ERR(GErr::Fail, QString("SSL_connect return %1 SSL_get_error=%2").arg(res, sslError));
+		SET_ERR(GErr::Fail, QString("SSL_connect return %1 SSL_get_error=%2").arg(res).arg(sslError));
 		return false;
 	}
 
