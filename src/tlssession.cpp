@@ -8,6 +8,10 @@ TlsSession::TlsSession(int sock, SSL* ssl) {
 
 TlsSession::~TlsSession() {
 	TlsSession::disconnect();
+	if (ssl_ != nullptr) {
+		::SSL_free(ssl_);
+		ssl_ = nullptr;
+	}
 }
 
 int TlsSession::read(char* buf, int size) {
@@ -30,9 +34,9 @@ int TlsSession::write(char* buf, int size) {
 
 bool TlsSession::disconnect() {
 	if (ssl_ != nullptr) {
-		::SSL_free(ssl_);
-		ssl_ = nullptr;
+		::SSL_shutdown(ssl_);
 	}
+
 	if (sock_ != 0) {
 		::shutdown(sock_, SHUT_RDWR);
 		::close(sock_);
