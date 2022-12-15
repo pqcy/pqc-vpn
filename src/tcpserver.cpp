@@ -106,4 +106,6 @@ void TcpServer::_run(TcpSession* session) {
 	sessions_.lock();
 	sessions_.remove(session);
 	sessions_.unlock();
+
+	delete session;
 }
