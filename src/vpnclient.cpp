@@ -105,6 +105,17 @@ void VpnClient::CaptureAndSendThread::run() {
 	VpnClient* client = PVpnClient(parent());
 	GSyncPcapDevice* dummyPcapDevice = &client->dummyPcapDevice_;
 
+	GIntf* realIntf = GNetInfo::instance().intfList().findByName(client->realIntfName_);
+	if (realIntf == nullptr) {
+		qWarning() << QString("realIntf(%1) is null").arg(client->realIntfName_);
+		return;
+	}
+	GIp realIp = realIntf->ip();
+	if (realIp.isNull()) {
+		qWarning() << QString("ip(%1) is zero").arg(client->realIntfName_);
+		return;
+	}
+
 #ifdef SUPPORT_VPN_TCP
 	TcpClient* sockClient = &client->sockClient_;
 #endif
@@ -123,6 +134,11 @@ void VpnClient::CaptureAndSendThread::run() {
 
 		GIpHdr* ipHdr = packet.ipHdr_;
 		if (ipHdr == nullptr) continue;
+		// ----- by gilgil 2022.12.15 -----
+		// Sometimes. real ip packet is captured in dummy interface.
+		// Ignore these packets.
+		if (ipHdr->sip() == realIp || ipHdr->dip() == realIp) continue;
+		// --------------------------------
 
 		GTcpHdr* tcpHdr = packet.tcpHdr_;
 		if (tcpHdr != nullptr)
