@@ -215,13 +215,16 @@ void VpnClient::ReadAndReplyThread::run() {
 			if(sport == 68 || dport == 68) // DHCP
 				isDhcp = true;
 		}
-		GPacket::Result res;
-		if (isDhcp)
-			res = dummyPcapDevice->write(&packet);
-		else
-			res = socketWrite->write(&packet);
-		if (res != GPacket::Ok) {
-			qWarning() << QString("pcapDevice_.write(&packet) return %1").arg(int(res));
+
+		if (isDhcp) {
+			GPacket::Result res = dummyPcapDevice->write(&packet);
+			if (res != GPacket::Ok)
+				qWarning() << QString("pcapDevice_.write(&packet) return %1").arg(int(res));
+		}
+		else {
+			GPacket::Result res = socketWrite->write(&packet);
+			if (res != GPacket::Ok)
+				qWarning() << QString("socketWrite.write(&packet) return %1").arg(int(res));
 		}
 		// qWarning() << QString("pcap write %1").arg(packet.buf_.size_); // gilgil temp 2022.12.10
 	}
