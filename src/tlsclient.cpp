@@ -8,6 +8,15 @@ TlsClient::TlsClient(QObject* parent) : Client(parent) {
 TlsClient::~TlsClient() {
 	qDebug() << "";
 	close();
+	if (ssl_ != nullptr) {
+		SSL_free(ssl_);
+		ssl_ = nullptr;
+	}
+
+	if (ctx_ != nullptr) {
+		SSL_CTX_free(ctx_);
+		ctx_ = nullptr;
+	}
 }
 
 int TlsClient::configCtx() {
@@ -66,13 +75,6 @@ bool TlsClient::doOpen() {
 bool TlsClient::doClose() {
 	if (ssl_ != nullptr) {
 		SSL_shutdown(ssl_);
-		SSL_free(ssl_);
-		ssl_ = nullptr;
-	}
-
-	if (ctx_ != nullptr) {
-		SSL_CTX_free(ctx_);
-		ctx_ = nullptr;
 	}
 
 	tcpClient_.close();
