@@ -24,6 +24,8 @@ int TlsClient::configCtx() {
 }
 
 bool TlsClient::doOpen() {
+	tcpClient_.localIp_ = localIp_;
+	tcpClient_.localPort_ = localPort_;
 	tcpClient_.ip_ = ip_;
 	tcpClient_.port_ = port_;
 	if (!tcpClient_.open()) {
