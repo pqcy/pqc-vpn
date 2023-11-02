@@ -84,13 +84,19 @@ bool VpnClient::doClose() {
 void VpnClient::runCommand(QString program, bool sync) {
 	qDebug() << program;
 	int res;
+	QStringList arguments = program.split(" ");
+	if (arguments.count() == 0) {
+		qWarning() << "arguments.count is zero" << arguments;
+		return;
+	}
+	QString program2 = arguments.at(0);
+	arguments.removeAt(0);
+
 	if (sync) {
 		QProcess p;
-		QStringList blankArguments;
-		res = p.execute(program, blankArguments);
+		res = p.execute(program2, arguments);
 	} else {
-		QStringList blankArguments;
-		res = QProcess::startDetached(program, blankArguments);
+		res = QProcess::startDetached(program2, arguments);
 	}
 	if (res < 0) {
 		qWarning() << QString("run %1 %2 return %3").arg(program).arg(res);
