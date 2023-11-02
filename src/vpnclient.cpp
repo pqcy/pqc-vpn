@@ -86,9 +86,11 @@ void VpnClient::runCommand(QString program, bool sync) {
 	int res;
 	if (sync) {
 		QProcess p;
-		res = p.execute(program);
+		QStringList blankArguments;
+		res = p.execute(program, blankArguments);
 	} else {
-		res = QProcess::startDetached(program);
+		QStringList blankArguments;
+		res = QProcess::startDetached(program, blankArguments);
 	}
 	if (res < 0) {
 		qWarning() << QString("run %1 %2 return %3").arg(program).arg(res);
