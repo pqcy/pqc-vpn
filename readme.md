@@ -4,11 +4,11 @@ pqc-vpn
 ## Build
 
 ### clone
-git clone https://gitlab.com/gilgil/g.git  
+git clone https://github.com/snoopspy/g-backup-20210607.git  
 git clone https://gitlab.com/gilgil/pqc-vpn.git  
 
 ### Buid G library
-cd g  
+cd g-backup-20210607  
 cd lib  
 make libg  
 cd ../..  
